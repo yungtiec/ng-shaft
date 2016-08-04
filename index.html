@@ -4,6 +4,8 @@
         <title>three.js webgl - geometry - cube</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
+        <script src='bower_components/threex.oimo/threex.oimo.js'></script>
         <style>
             body {
                 margin: 0px;
@@ -19,18 +21,17 @@
         <script>
 
             var camera, scene, renderer;
-            var mesh;
             var shafts = [];
             var shaftSpeed = 3;
             var player;
-            var raycaster = new THREE.Raycaster();
-            var mouse = new THREE.Vector2();
+            var rotSpeed = 0.2;
 
             init();
             animate();
 
             function init() {
-                renderer = new THREE.WebGLRenderer();
+                // passin { antialias: true } to WebGLRenderer for better rendering
+                renderer = new THREE.WebGLRenderer({ antialias: true });
                 renderer.setPixelRatio( window.devicePixelRatio );
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 document.body.appendChild( renderer.domElement );
@@ -43,71 +44,285 @@
 
                 var texture = new THREE.TextureLoader().load( 'src/crate.gif' );
 
-                var geometry = new THREE.BoxBufferGeometry( 100, 20, 100 );
-                var cubeGeometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
+                var geometry = new THREE.BoxBufferGeometry( 100, 20, 75 );
+                // var cubeGeometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
                 var material = new THREE.MeshBasicMaterial( { map: texture } );
 
-                var radius = 500;
-                var nBoxes = 50;
-                for (var i = 0; i < nBoxes; i++) {
-                    var mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( radius/2 - radius * Math.random(),
-                                       radius/2 - radius * Math.random(),
-                                       radius/2 - radius * Math.random() );
-                    scene.add(mesh);
-                    shafts.push(mesh);
-                }
-
-                player = new THREE.Mesh( cubeGeometry, new THREE.MeshBasicMaterial() );
-                scene.add(player);
-
-                renderer.domElement.addEventListener( 'mousemove', onMouseMove, false );
-                // renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-                // renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+                createShafts(geometry, material);
 
                 window.addEventListener( 'resize', onWindowResize, false );
 
             }
 
-            function onWindowResize() {
+            function createShafts (geometry, material) {
+                var mesh;
+                var getShaftCollection1 = function () {
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 200, 100, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -70;
+                    mesh.rotEndY = 70;
+                    mesh.rotateAround = 'x';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 350, 200, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -210;
+                    mesh.rotEndY = -70;
+                    mesh.rotateAround = 'x';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 100, -100, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -100, 450, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -100, 400, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -250, 350, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -150;
+                    mesh.rotEndY = 0;
+                    mesh.rotateAround = 'x';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -250, 150, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -210;
+                    mesh.rotEndY = -70;
+                    mesh.rotateAround = 'x';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -100, -150, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = 70;
+                    mesh.rotEndY = 210;
+                    mesh.rotateAround = 'z';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -500, -200, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 500, 50, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = 100;
+                    mesh.rotEndY = 200;
+                    mesh.rotateAround = 'z';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 500, -350, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 250, -50, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+                };
+                var getShaftCollection2 = function () {
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 350, 150, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -70;
+                    mesh.rotEndY = 70;
+                    mesh.rotateAround = 'z';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 100, 200, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -210;
+                    mesh.rotEndY = -70;
+                    mesh.rotateAround = 'z';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 200, -100, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -100;
+                    mesh.rotEndY = 0;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -100, 50, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -100, 400, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -250, 450, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -150;
+                    mesh.rotEndY = 0;
+                    mesh.rotateAround = 'x';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 150, 250, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = -210;
+                    mesh.rotEndY = -70;
+                    mesh.rotateAround = 'x';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( -100, 100, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = 70;
+                    mesh.rotEndY = 210;
+                    mesh.rotateAround = 'z';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 350, -150, 0 );
+                    mesh.toRotateOrNot = false;
+                    mesh.rotateAround = 'z';
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 500, -50, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 400, 350, 0 );
+                    mesh.toRotateOrNot = true;
+                    mesh.rotStartingY = 100;
+                    mesh.rotEndY = 200;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+
+                    mesh = new THREE.Mesh( geometry, material );
+                    mesh.position.set( 250, -200, 0 );
+                    mesh.toRotateOrNot = false;
+                    scene.add(mesh);
+                    shafts.push(mesh);
+                };
+                if (getRandomBool()) {
+                    getShaftCollection1();
+                } else {
+                    getShaftCollection2();
+                }
+            }
+
+            function changeShaftPosition (shaft, shafts) {
+                var curOccupiedX = shafts.map(shaft => shaft.position.x);
+                var xPositionArr = _.range(-400, 400, 100);
+                shaft.position.x = _.sample(xPositionArr);
+                //
+                var noOverlap = false;
+                while (!noOverlap) {
+                    noOverlap = true;
+                    for (var i = 0; i < curOccupiedX.length; i++) {
+                        shaft.position.x = _.sample(xPositionArr)
+                        var diff = Math.abs(shaft.position.x - curOccupiedX[i]);
+                        if (diff < 190) {
+                            noOverlap &= false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            function onWindowResize () {
 
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
-
                 renderer.setSize( window.innerWidth, window.innerHeight );
 
             }
 
-            function onMouseMove ( event ) {
-
-                // calculate mouse position in normalized device coordinates
-                // (-1 to +1) for both components
-
-                mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-
+            function getRandomBool (float) {
+                return Math.random() > float;
             }
 
+            function rotate (shaft) {
+                if (shaft.toRotateOrNot) {
+                    if (shaft.position.y > shaft.rotStartingY && shaft.position.y < shaft.rotEndY) {
+                        if (shaft.rotateAround === 'x') {
+                            shaft.rotation.x -= rotSpeed * 1;
+                        }
+                        if (shaft.rotateAround === 'z') {
+                            shaft.rotation.z -= rotSpeed * 1;
+                        }
+                    } else if (shaft.position.y > shaft.rotEndY) {
+                        if (shaft.rotateAround === 'x') {
+                            shaft.rotation.x = 0;
+                        }
+                        if (shaft.rotateAround === 'z') {
+                            shaft.rotation.z = 0;
+                        }
+                    }
+                }
+            }
 
             function animate() {
-                // where all the action is
 
+                // where all the action is
                 requestAnimationFrame( animate );
 
                 // prevent shafts from falling out of the screen
                 for (var i = 0; i < shafts.length; i++) {
-                    if (shafts[i].position.y < -250) {
-                        shafts[i].position.y = 250;
+
+                    rotate(shafts[i]);
+
+                    if (shafts[i].position.y > 350) {
+                        // if out of scene, randomly pick one from shaft collection
+                        // replace it
+                        // var temp = shafts[i].position.z;
+                        // shafts[i].position.z = shafts[i].position.x;
+                        // if (shafts[i].position.y > 500) shafts[i].position.x = -500;
+                        // else shafts[i].position.z += 50;
+                        // shafts[i].position.set( 100, -150, 0 );
+                        changeShaftPosition(shafts[i], shafts);
+                        shafts[i].position.y = -350;
                     } else {
-                        shafts[i].position.y -= shaftSpeed;
+                        shafts[i].position.y += shaftSpeed;
                     }
-                }
 
-                var intersects = raycaster.intersectObjects( player );
 
-                for ( var i = 0; i < intersects.length; i++ ) {
-
-                    intersects[ i ].object.material.color.set( 0xff0000 );
 
                 }
 

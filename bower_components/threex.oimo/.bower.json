@@ -1,0 +1,14 @@
+{
+  "name": "threex.oimo",
+  "homepage": "https://github.com/jeromeetienne/threex.oimo",
+  "_release": "72007fff26",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "72007fff2612c04173e4beca9c95353bd651e853"
+  },
+  "_source": "https://github.com/jeromeetienne/threex.oimo.git",
+  "_target": "*",
+  "_originalSource": "threex.oimo",
+  "_direct": true
+}
