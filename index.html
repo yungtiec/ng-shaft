@@ -129,7 +129,7 @@
 
             function init() {
                 // passin { antialias: true } to WebGLRenderer for better rendering
-                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer = new THREE.WebGLRenderer();
                 renderer.setPixelRatio( window.devicePixelRatio );
                 renderer.setSize( window.innerWidth, window.innerHeight );
                 document.body.appendChild( renderer.domElement );
@@ -466,8 +466,8 @@
                 }
 
                 // player movement
-                if ( upKeyDown == true ) player.position.y += playerSpeed;
-                if ( downKeyDown == true ) player.position.y -= playerSpeed;
+                // if ( upKeyDown == true ) player.position.y += playerSpeed;
+                // if ( downKeyDown == true ) player.position.y -= playerSpeed;
                 if ( leftKeyDown == true ) player.position.x -= playerSpeed;
                 if ( rightKeyDown == true ) player.position.x += playerSpeed;
                 if ( shaftCollision == true ) {
