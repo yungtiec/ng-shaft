@@ -71,7 +71,7 @@
                 //================================================
                 // generate player (sphere)
                 //================================================
-                var sphereGeometry = new THREE.SphereBufferGeometry( 20, 20, 20 );
+                var sphereGeometry = new THREE.CubeGeometry( 20, 20, 20 );
 
                 player = new THREE.Mesh( sphereGeometry, new THREE.MeshNormalMaterial() );
                 scene.add(player);
@@ -150,11 +150,26 @@
                         shafts[i].position.y = -350;
                     } else {
                         shafts[i].position.y += shaftSpeed;
-                        if ( shafts[i].position.distanceTo( player.position ) < shaftHeight + playerRadius ) {
-                            collision = true;
-                        }
+                        // if ( shafts[i].position.distanceTo( player.position ) < shaftHeight + playerRadius ) {
+                        //     collision = true;
+                        // }
                     }
                 }
+
+                var originPoint = player.position.clone();
+
+                for (var vertexIndex = 0; vertexIndex < player.geometry.vertices.length; vertexIndex++) {
+            		var localVertex = player.geometry.vertices[vertexIndex].clone();
+            		var globalVertex = localVertex.applyMatrix4( player.matrix );
+            		var directionVector = globalVertex.sub( player.position );
+
+            		var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+            		var collisionResults = ray.intersectObjects( shafts );
+            		if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() )
+            			collision = true;
+            	}
+
+
 
                 // player movement
                 if ( upKeyDown == true ) player.position.y += playerSpeed;
@@ -164,7 +179,7 @@
 
                 if ( collision == true ) {
                     console.log("collision")
-                    player.position.y += playerSpeed;
+                    player.position.y += shaftSpeed;
                 } else {
                     console.log("no collision")
                     player.position.y -= playerSpeed * 2;
