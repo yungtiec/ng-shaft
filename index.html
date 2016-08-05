@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
         <script src='bower_components/threex.oimo/threex.oimo.js'></script>
         <style>
             body {
@@ -12,19 +13,117 @@
                 background-color: #000000;
                 overflow: hidden;
             }
+            p {
+                color: white;
+                margin: 8px;
+            }
+            #dashboard {
+                position: absolute;
+            }
+            #level {
+                font-size: 30px;
+            }
+            #play {
+                position: absolute;
+                width: 500px;
+                height: 200px;
+                background-color: gray;
+                opacity: 0.75;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            #gameover {
+                position: absolute;
+                width: 500px;
+                height: 200px;
+                background-color: gray;
+                opacity: 0.75;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            #gameover-text {
+                position: relative;
+                top: 30%;
+                text-align: center;
+                font-size: 30px;
+            }
         </style>
     </head>
-    <body>
+    <body ng-app="threeDShaft" ng-controller="threeDShaft">
+
+
+        <div id="dashboard">
+            <p id="level">地下第 {{ level }} 階</p>
+            <p id="score">分數: {{ score }} </p>
+        </div>
+        <div ng-show="gameOver" id="gameover">
+            <p id="gameover-text">
+                Game Over <br>
+                <button ng-click="restart()">Try Again</button>
+            </p>
+        </div>
+        <div ng-hide="playing" id="play">
+            <p id="gameover-text">
+                小朋友下樓梯 3D版 <br>
+                <button ng-click="start()">Play</button>
+            </p>
+
+        </div>
+
 
         <script src="src/three.js"></script>
 
         <script>
+            var app = angular.module('threeDShaft', [])
+            app.controller('threeDShaft', function($scope, $interval) {
+                $scope.level = 1
+                $scope.score = 0
+                $scope.gameOver = false;
+                $scope.startCount = function() {
+                    $interval(function() {
+                        if (!$scope.gameOver) {
+                            $scope.level++
+                        }
+                    }, 5000)
+                    $interval(function() {
+                        if (!$scope.gameOver) {
+                            $scope.score++
+                        }
+                    }, 100)
+                }
+                $scope.restart = function() {
+                    $scope.gameOver = false;
+                    $scope.level = 1;
+                    $scope.score = 0;
+                    $scope.startCount();
+                    createPlayer();
+                }
+                $scope.start = function() {
+                    $scope.playing = true;
+                    createPlayer();
+                    $scope.startCount();
+                }
+
+
+
 
             var camera, scene, renderer;
-            var shafts = [];
+            var items = [];
             var shaftSpeed = 3;
-            var player;
             var rotSpeed = 0.2;
+            var shaftHeight = 20;
+
+            var upKeyDown = false;
+            var downKeyDown = false;
+            var leftKeyDown = false;
+            var rightKeyDown = false;
+
+            var player;
+            var playerSpeed = 3;
+            var playerRadius = 20;
+            var shaftCollision, coinCollision;
 
             init();
             animate();
@@ -44,226 +143,257 @@
 
                 var texture = new THREE.TextureLoader().load( 'src/crate.gif' );
 
-                var geometry = new THREE.BoxBufferGeometry( 100, 20, 75 );
-                // var cubeGeometry = new THREE.BoxBufferGeometry( 20, 20, 20 );
+                var geometry = new THREE.BoxBufferGeometry( 100, 20, 100, 20, 20, 20);
+                var coinGeometry = new THREE.CylinderBufferGeometry( 10, 10, 5, 32, 32, false );
+                coinGeometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
+                coinGeometry.applyMatrix( new THREE.Matrix4().makeRotationY( THREE.Math.degToRad( 90 ) ) );
+
                 var material = new THREE.MeshBasicMaterial( { map: texture } );
 
+                createCoin(coinGeometry);
                 createShafts(geometry, material);
+                createSpikes();
 
+                // event listenters
+                document.addEventListener('keydown', onKeyDown, false);
+                document.addEventListener('keyup', onKeyUp, false);
                 window.addEventListener( 'resize', onWindowResize, false );
 
             }
 
-            function createShafts (geometry, material) {
-                var mesh;
-                var getShaftCollection1 = function () {
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 200, 100, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -70;
-                    mesh.rotEndY = 70;
-                    mesh.rotateAround = 'x';
-                    scene.add(mesh);
-                    shafts.push(mesh);
+            function createPlayer() {
+                var cubeGeometry = new THREE.CubeGeometry( 20, 40, 20 );
+                player = new THREE.Mesh( cubeGeometry, new THREE.MeshNormalMaterial() );
+                scene.add(player);
+            }
 
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 350, 200, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -210;
-                    mesh.rotEndY = -70;
-                    mesh.rotateAround = 'x';
-                    scene.add(mesh);
-                    shafts.push(mesh);
+            function onKeyDown(e) {
+                    switch( e.keyCode ) {
+                        case 38:
+                            upKeyDown = true;
+                            break;
+                        case 40:
+                            downKeyDown = true;
+                            break;
+                        case 37:
+                            leftKeyDown = true;
+                            break;
+                        case 39:
+                            rightKeyDown = true;
+                            break;
+                    }
+            }
 
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 100, -100, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -100, 450, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -100, 400, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -250, 350, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -150;
-                    mesh.rotEndY = 0;
-                    mesh.rotateAround = 'x';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -250, 150, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -210;
-                    mesh.rotEndY = -70;
-                    mesh.rotateAround = 'x';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -100, -150, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = 70;
-                    mesh.rotEndY = 210;
-                    mesh.rotateAround = 'z';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -500, -200, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 500, 50, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = 100;
-                    mesh.rotEndY = 200;
-                    mesh.rotateAround = 'z';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 500, -350, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 250, -50, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-                };
-                var getShaftCollection2 = function () {
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 350, 150, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -70;
-                    mesh.rotEndY = 70;
-                    mesh.rotateAround = 'z';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 100, 200, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -210;
-                    mesh.rotEndY = -70;
-                    mesh.rotateAround = 'z';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 200, -100, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -100;
-                    mesh.rotEndY = 0;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -100, 50, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -100, 400, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -250, 450, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -150;
-                    mesh.rotEndY = 0;
-                    mesh.rotateAround = 'x';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 150, 250, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = -210;
-                    mesh.rotEndY = -70;
-                    mesh.rotateAround = 'x';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( -100, 100, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = 70;
-                    mesh.rotEndY = 210;
-                    mesh.rotateAround = 'z';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 350, -150, 0 );
-                    mesh.toRotateOrNot = false;
-                    mesh.rotateAround = 'z';
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 500, -50, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 400, 350, 0 );
-                    mesh.toRotateOrNot = true;
-                    mesh.rotStartingY = 100;
-                    mesh.rotEndY = 200;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-
-                    mesh = new THREE.Mesh( geometry, material );
-                    mesh.position.set( 250, -200, 0 );
-                    mesh.toRotateOrNot = false;
-                    scene.add(mesh);
-                    shafts.push(mesh);
-                };
-                if (getRandomBool()) {
-                    getShaftCollection1();
-                } else {
-                    getShaftCollection2();
+            function onKeyUp(e) {
+                switch( e.keyCode ) {
+                    case 38:
+                        upKeyDown = false;
+                        break;
+                    case 40:
+                        downKeyDown = false;
+                        break;
+                    case 37:
+                        leftKeyDown = false;
+                        break;
+                    case 39:
+                        rightKeyDown = false;
+                        break;
                 }
             }
 
-            function changeShaftPosition (shaft, shafts) {
-                var curOccupiedX = shafts.map(shaft => shaft.position.x);
+            function createCoin (coinGeometry) {
+                var mesh;
+                mesh = new THREE.Mesh( coinGeometry );
+                mesh.position.set( 200, 100, 0 );
+                mesh.toRotateOrNot = true;
+                mesh.itemType = 'coin';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( coinGeometry );
+                mesh.position.set( -250, 150, 0 );
+                mesh.toRotateOrNot = true;
+                mesh.itemType = 'coin';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( coinGeometry );
+                mesh.position.set( -100, -150, 0 );
+                mesh.toRotateOrNot = true;
+                mesh.itemType = 'coin';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( coinGeometry );
+                mesh.position.set( 500, 50, 0 );
+                mesh.toRotateOrNot = true;
+                mesh.itemType = 'coin';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( coinGeometry )
+                mesh.position.set( 350, 200, 0 );
+                mesh.toRotateOrNot = true;
+                mesh.itemType = 'coin';
+                scene.add(mesh);
+                items.push(mesh);
+            }
+
+            function createShafts (geometry, material) {
+                var mesh;
+
+                mesh = new THREE.Mesh( geometry );
+                mesh.position.set( 100, -100, 0 );
+                mesh.itemType = 'byeShaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( 100, -150, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( 150, 50, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry );
+                mesh.position.set( 250, 250, 0 );
+                mesh.itemType = 'byeShaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( -100, 450, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( -100, 400, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry );
+                mesh.position.set( -250, 350, 0 );
+                mesh.itemType = 'byeShaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( -500, -200, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( 500, -350, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+
+                mesh = new THREE.Mesh( geometry, material );
+                mesh.position.set( 250, -50, 0 );
+                mesh.itemType = 'shaft';
+                scene.add(mesh);
+                items.push(mesh);
+            }
+
+            function createSpikes () {
+                var mesh;
+
+                var combined = new THREE.Geometry();
+                var deltaX = 25;
+                var deltaZ = 25;
+                var x = 75;
+                var z;
+                var base = new THREE.BoxGeometry( 100, 20, 75, 20, 20, 20);
+                base.applyMatrix( new THREE.Matrix4().makeTranslation( 137, 150, 25 ) );
+                combined.merge(base, base.matrix);
+                for (var i = 1; i < 5; i++) {
+                    x += deltaX;
+                    z = -25;
+                    for (var j = 1; j < 4; j++) {
+                        z += deltaZ;
+                        var spike = new THREE.CylinderGeometry(0, 15, 25, 15, 1, true);
+                        spike.applyMatrix( new THREE.Matrix4().makeTranslation( x, 160, z ) );
+                        combined.merge(spike, spike.matrix);
+                    }
+                }
+                mesh = new THREE.Mesh(combined);
+                mesh.itemType = 'spikyShaft';
+                items.push(mesh);
+                scene.add(mesh);
+
+                combined = new THREE.Geometry();
+                deltaX = 25;
+                deltaZ = 25;
+                x = 75;
+                base = new THREE.BoxGeometry( 100, 20, 100, 20, 20, 20);
+                base.applyMatrix( new THREE.Matrix4().makeTranslation( 137, -160, 12 ) );
+                combined.merge(base, base.matrix);
+                for (var i = 1; i < 5; i++) {
+                    x += deltaX;
+                    z = -25;
+                    for (var j = 1; j < 4; j++) {
+                        z += deltaZ;
+                        var spike = new THREE.CylinderGeometry(0, 15, 25, 15, 1, true);
+                        spike.applyMatrix( new THREE.Matrix4().makeTranslation( x, -150, z ) );
+                        combined.merge(spike, spike.matrix);
+                    }
+                }
+                mesh = new THREE.Mesh(combined);
+                mesh.itemType = 'spikyShaft';
+                items.push(mesh);
+                scene.add(mesh);
+            }
+
+            function changeItemPositionX (item, items) {
+                var curOccupiedX = items.map(shaft => shaft.position.x);
                 var xPositionArr = _.range(-400, 400, 100);
-                shaft.position.x = _.sample(xPositionArr);
+                item.position.x = _.sample(xPositionArr);
                 //
                 var noOverlap = false;
                 while (!noOverlap) {
                     noOverlap = true;
                     for (var i = 0; i < curOccupiedX.length; i++) {
-                        shaft.position.x = _.sample(xPositionArr)
-                        var diff = Math.abs(shaft.position.x - curOccupiedX[i]);
+                        item.position.x = _.sample(xPositionArr)
+                        var diff = Math.abs(item.position.x - curOccupiedX[i]);
                         if (diff < 190) {
                             noOverlap &= false;
                             break;
                         }
                     }
                 }
+            }
+
+            function changeItemPositionY (item, items) {
+                var curOccupiedY = items.map(shaft => shaft.position.y);
+                var yPositionArr = _.range(-350, 350, 50);
+                item.position.y = _.sample(yPositionArr);
+                //
+                var noOverlap = false;
+                while (!noOverlap) {
+                    noOverlap = true;
+                    for (var i = 0; i < curOccupiedY.length; i++) {
+                        item.position.y = _.sample(yPositionArr)
+                        var diff = Math.abs(item.position.y - curOccupiedY[i]);
+                        if (diff < 50) {
+                            noOverlap &= false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            function changePosition(item, items) {
+                changeItemPositionX (item, items);
+                changeItemPositionY (item, items);
+                item.position.y = -350;
             }
 
             function onWindowResize () {
@@ -278,57 +408,82 @@
                 return Math.random() > float;
             }
 
-            function rotate (shaft) {
-                if (shaft.toRotateOrNot) {
-                    if (shaft.position.y > shaft.rotStartingY && shaft.position.y < shaft.rotEndY) {
-                        if (shaft.rotateAround === 'x') {
-                            shaft.rotation.x -= rotSpeed * 1;
-                        }
-                        if (shaft.rotateAround === 'z') {
-                            shaft.rotation.z -= rotSpeed * 1;
-                        }
-                    } else if (shaft.position.y > shaft.rotEndY) {
-                        if (shaft.rotateAround === 'x') {
-                            shaft.rotation.x = 0;
-                        }
-                        if (shaft.rotateAround === 'z') {
-                            shaft.rotation.z = 0;
-                        }
-                    }
-                }
+            function rotateAroundObjAxisY (coin) {
+                coin.rotation.y -= rotSpeed;
             }
 
             function animate() {
+
+                shaftCollision = false;
+                coinCollision = false;
 
                 // where all the action is
                 requestAnimationFrame( animate );
 
                 // prevent shafts from falling out of the screen
-                for (var i = 0; i < shafts.length; i++) {
+                for (var i = 0; i < items.length; i++) {
 
-                    rotate(shafts[i]);
-
-                    if (shafts[i].position.y > 350) {
-                        // if out of scene, randomly pick one from shaft collection
-                        // replace it
-                        // var temp = shafts[i].position.z;
-                        // shafts[i].position.z = shafts[i].position.x;
-                        // if (shafts[i].position.y > 500) shafts[i].position.x = -500;
-                        // else shafts[i].position.z += 50;
-                        // shafts[i].position.set( 100, -150, 0 );
-                        changeShaftPosition(shafts[i], shafts);
-                        shafts[i].position.y = -350;
+                    if (items[i].itemType === 'coin') rotateAroundObjAxisY(items[i]);
+                    if (items[i].position.y > 400) {
+                        changeItemPositionX(items[i], items);
+                        if (items[i].itemType === 'spikyShaft') items[i].position.y = -500;
+                        else items[i].position.y = -350;
                     } else {
-                        shafts[i].position.y += shaftSpeed;
+                        // check for getting coins
+                        if (items[i].itemType === 'coin') {
+                            if (player) {
+                                if (items[i].position.distanceTo(player.position) < 15) {
+                                    changePosition(items[i], items)
+                                }
+                            }
+                        }
+                        items[i].position.y += shaftSpeed;
                     }
 
-
-
                 }
+
+                if ($scope.playing) {
+                        if (player.position.y < -310) {
+                            $scope.gameOver = true;
+                            scene.remove(player)
+                        }
+
+                // check for landing on shaft
+                var originPoint = player.position.clone();
+                for (var vertexIndex = 0; vertexIndex < player.geometry.vertices.length; vertexIndex++) {
+                    var localVertex = player.geometry.vertices[vertexIndex].clone();
+                    var globalVertex = localVertex.applyMatrix4( player.matrix );
+                    var directionVector = globalVertex.sub( player.position );
+                    var ray = new THREE.Raycaster( originPoint, directionVector.clone().normalize() );
+                    var collisionResults = ray.intersectObjects( items );
+                    if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ) {
+                        shaftCollision = true;
+                        if (collisionResults[0].object.itemType === 'byeShaft') {
+                            setTimeout(function() {
+                                changePosition(collisionResults[0].object, items)
+                            } , 300);
+                        }
+                    }
+                }
+
+                // player movement
+                if ( upKeyDown == true ) player.position.y += playerSpeed;
+                if ( downKeyDown == true ) player.position.y -= playerSpeed;
+                if ( leftKeyDown == true ) player.position.x -= playerSpeed;
+                if ( rightKeyDown == true ) player.position.x += playerSpeed;
+                if ( shaftCollision == true ) {
+                    player.position.y += playerSpeed;
+                } else {
+                    player.position.y -= playerSpeed * 2;
+                }
+
+            }
 
                 renderer.render( scene, camera );
 
             }
+
+        });
 
         </script>
 
