@@ -1,4 +1,0 @@
-- ```THREEx.Oimo.Body2MeshUpdater``` to become a function instead of a class
-- THREEx.Oimo.createBodyFromMesh(nomove) to be replaced by a more generic options system
-  - would allow to access other options such as material
-- THREEx.Oimo.createBodyFromMesh <- do a bounding box by default
