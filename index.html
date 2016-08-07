@@ -5,26 +5,44 @@
     <title>three.js webgl - geometry - cube</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.0/angular-cookies.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ngStorage/0.3.6/ngStorage.min.js"></script>
     <script type="text/javascript" src="light.js"></script>
     <style>
     body {
         margin: 0px;
         background: #69ceec;
         overflow: hidden;
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    li {
+        display: flex;
+        justify-content: space-around;
+        margin: 5px 0;
+    }
+
+    p {
+        color: white;
+        margin: 8px;
+    }
+
+    span {
+        margin: 0 75px;
+        font-size: 1.3em;
     }
 
     #world {
         margin: 0px;
         background: #69ceec;
         overflow: hidden;
-    }
-
-    p {
-        color: white;
-        margin: 8px;
     }
 
     #dashboard {
@@ -57,71 +75,124 @@
         transform: translate(-50%, -50%);
     }
 
-    #gameover-text {
+    #logo {
         position: relative;
-        top: 30%;
+        top: 60px;
+        color: #ef7c91;
+        font-size: 1.2em;
+        -webkit-text-shadow: 0px 3px 0px #ec4141;
+        -moz-text-shadow: 0px 3px 0px #ec4141;
+        text-shadow: 0px 3px 0px #ec4141;
+    }
+
+    .scoreboard {
+        color: #ef7c91;
+        position: absolute;
+        top: 29%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1.2em;
+        -webkit-text-shadow: 0px 3px 0px #ec4141;
+        -moz-text-shadow: 0px 3px 0px #ec4141;
+        text-shadow: 0px 3px 0px #ec4141;
+    }
+
+    button[name=start] {
+        font-family: 'Open Sans', sans-serif;
+        position: absolute;
+        top: 200%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.2em;
+        width: 280px;
+        color: #FFF;
+        display: block;
+        text-decoration: none;
+        margin: 0 auto;
+        border: solid 1px #f79472;
+        background: #f79472;
         text-align: center;
-        font-size: 30px;
+        padding: 10px 30px;
+        -webkit-transition: all 0.1s;
+        -moz-transition: all 0.1s;
+        transition: all 0.1s;
+        -webkit-box-shadow: 0px 9px 0px #e6805c;
+        -moz-box-shadow: 0px 9px 0px #e6805c;
+        box-shadow: 0px 9px 0px #e6805c;
+    }
+
+    button[name=start]:active {
+        -webkit-box-shadow: 0px 2px 0px #e6805c;
+        -moz-box-shadow: 0px 2px 0px #e6805c;
+        box-shadow: 0px 2px 0px #e6805c;
+    }
+
+    button[name=start]:focus {
+        outline:0;
+    }
+
+    button[name=restart] {
+        font-family: 'Open Sans', sans-serif;
+        position: absolute;
+        top: 75%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.2em;
+        width: 380px;
+        color: #FFF;
+        display: block;
+        text-decoration: none;
+        margin: 0 auto;
+        border: solid 1px #f79472;
+        background: #f79472;
+        text-align: center;
+        padding: 10px 30px;
+        -webkit-transition: all 0.1s;
+        -moz-transition: all 0.1s;
+        transition: all 0.1s;
+        -webkit-box-shadow: 0px 9px 0px #e6805c;
+        -moz-box-shadow: 0px 9px 0px #e6805c;
+        box-shadow: 0px 9px 0px #e6805c;
+    }
+
+    button[name=restart]:active {
+        -webkit-box-shadow: 0px 2px 0px #e6805c;
+        -moz-box-shadow: 0px 2px 0px #e6805c;
+        box-shadow: 0px 2px 0px #e6805c;
+    }
+
+    button[name=restart]:focus {
+        outline:0;
     }
     </style>
 </head>
 
 <body ng-app="threeDShaft" ng-controller="threeDShaft">
     <div id="world">
-        <div id="dashboard">
+        <div id="dashboard" ng-hide="gameOver || !playing">
             <p id="level">地下第 {{ level }} 階</p>
             <p id="score">分數: {{ score }} </p>
             <p id="life">生命值: {{ lives }}</p>
         </div>
-        <div ng-show="gameOver" id="gameover">
-            <p id="gameover-text">
-                Game Over
-                <br>
-                <button ng-click="restart()">Try Again</button>
-            </p>
-        </div>
-        <div ng-hide="playing" id="play">
-            <p id="gameover-text">
+        <button name="restart" ng-show="gameOver" ng-click="restart()">TRY AGAIN</button>
+        <ul class="scoreboard" ng-show="gameOver">
+            <li>YOUR BEST SCORES</li>
+            <li ng-repeat="score in $storage.bestScores track by $index">
+                <span>{{score}}</span>
+            </li>
+        </ul>
+        <div ng-hide="playing" class="scoreboard">
+            <p id="logo">
                 小朋友下樓梯 3D版
                 <br>
-                <button ng-click="start()">Play</button>
+                <button name="start" ng-click="start()">PLAY</button>
             </p>
         </div>
     </div>
     <script src="src/three.js"></script>
     <script>
-    var app = angular.module('threeDShaft', ['ngCookies']);
-    app.controller('threeDShaft', function($scope, $interval) {
-        $scope.level = 1;
-        $scope.score = 0;
-        $scope.lives = 10;
-        $scope.gameOver = false;
-        $scope.startCount = function() {
-            $interval(function() {
-                if (!$scope.gameOver) {
-                    $scope.level++;
-                }
-            }, 5000);
-            $interval(function() {
-                if (!$scope.gameOver) {
-                    $scope.score++;
-                }
-            }, 100);
-        };
-        $scope.restart = function() {
-            $scope.gameOver = false;
-            $scope.level = 1;
-            $scope.score = 0;
-            $scope.startCount();
-            resetSpeed()
-            createPlayer();
-        };
-        $scope.start = function() {
-            $scope.playing = true;
-            resetSpeed()
-            createPlayer();
-            $scope.startCount();
-        };
+    var app = angular.module('threeDShaft', ['ngStorage']);
+    app.controller('threeDShaft', function($scope, $interval, $localStorage) {
 
         var camera, scene, renderer;
         var items = [];
@@ -143,6 +214,55 @@
         var collisionObject = {};
         var hasIncSpeed = false;
 
+        var gameoverObject;
+        var scoreboard;
+        var storeBestScore = false;
+        var alreadyStoredBestScore = false;
+
+        $scope.$storage = $localStorage.$default({
+            bestScores: []
+        });
+        $scope.$storage.bestScores = _.sortBy($scope.$storage.bestScores, function(n) {
+            return -n
+        });
+        $scope.numBestScores = 5;
+        $scope.level = 1;
+        $scope.score = 0;
+        $scope.lives = 10;
+        $scope.gameOver = false;
+        $scope.startCount = function() {
+            $interval(function() {
+                if (!$scope.gameOver) {
+                    $scope.level++;
+                }
+            }, 5000);
+            $interval(function() {
+                if (!$scope.gameOver) {
+                    $scope.score++;
+                }
+            }, 100);
+        };
+
+        $scope.restart = function() {
+            $scope.gameOver = false;
+            $scope.level = 1;
+            $scope.score = 0;
+            $scope.startCount();
+            resetSpeed()
+            createPlayer();
+            scoreboard.visible = false;
+            gameoverObject.visible = false;
+            if (storeBestScore) storeBestScore = false;
+            if (alreadyStoredBestScore) alreadyStoredBestScore = false;
+        };
+
+        $scope.start = function() {
+            $scope.playing = true;
+            resetSpeed()
+            createPlayer();
+            $scope.startCount();
+        };
+
         var Colors = {
             red: 0xff3c46,
             white: 0xd8d0d1,
@@ -156,6 +276,9 @@
             tangerine: 0xf05442
         };
 
+        var gameoverMaterial = new THREE.MeshPhongMaterial({
+            color: Colors.red
+        });
         var redMaterial = new THREE.MeshPhongMaterial({
             color: Colors.red,
             shading: THREE.FlatShading
@@ -196,8 +319,6 @@
             color: Colors.tangerine,
             shading: THREE.FlatShading
         });
-        var fullstack = new THREE.TextureLoader().load( 'src/fullstack.png' );
-
 
         init();
         animate();
@@ -227,12 +348,32 @@
             createShafts(platformGeometry);
             createDisappearingShafts(platformGeometry);
             createSpikes(redMaterial);
+            createGameover3Dtext(scene);
 
             // event listenters
             document.addEventListener('keydown', onKeyDown, false);
             document.addEventListener('keyup', onKeyUp, false);
             window.addEventListener('resize', onWindowResize, false);
 
+        }
+
+        function createGameover3Dtext(scene) {
+            var loader = new THREE.FontLoader();
+            loader.load('Minecrafter_Regular.typeface.js', function(font) {
+                var gameoverGeo = new THREE.TextGeometry("GAME OVER", {
+                    font: font,
+                    size: 25
+                });
+                gameoverGeo.applyMatrix(new THREE.Matrix4().makeTranslation(-107.5, 80, 100));
+                gameoverObject = new THREE.Mesh(gameoverGeo, gameoverMaterial);
+                scene.add(gameoverObject);
+                var scoreboardGeo = new THREE.BoxBufferGeometry(250, 250, 50);
+                scoreboard = new THREE.Mesh(scoreboardGeo, whiteMaterial);
+                scoreboard.position.set(0, 0, 100)
+                scene.add(scoreboard);
+                scoreboard.visible = false;
+                gameoverObject.visible = false;
+            });
         }
 
         function resetSpeed() {
@@ -494,46 +635,52 @@
             coin.rotation.y -= rotSpeed;
         }
 
-        function increaseSpeed (score) {
-            // if (increamentSpeed === true) {
-
-            //     increamentSpeed = false;
-            // } else {
-                if (score > 200 && !hasIncSpeed) {
-                    shaftSpeed += 1;
-                    hasIncSpeed = true;
-                } else if (score < 400 && score > 200 && !hasIncSpeed) {
-                    shaftSpeed += 1;
-                    hasIncSpeed = true;
-                } else if (score < 600 && score >= 400 && !hasIncSpeed) {
-                    shaftSpeed += 1;
-                    hasIncSpeed = true;
-                } else {
-                    hasIncSpeed = true;
+        function updateScoreBoard(score, bestScores, numBestScores) {
+            if (bestScores.indexOf(score) === -1) {
+                bestScores.splice(_.sortedIndexBy(bestScores, score, function(n) {
+                    return -n
+                }), 0, score);
+                if (bestScores.length >= numBestScores) {
+                    bestScores.splice(-1, 1);
                 }
-            // }
+            }
         }
 
         function animate() {
+
+            if (storeBestScore) {
+                updateScoreBoard($scope.score, $scope.$storage.bestScores, $scope.numBestScores)
+                alreadyStoredBestScore = true;
+            }
+
+            if ($scope.gameOver) {
+                scoreboard.visible = true;
+                gameoverObject.visible = true;
+                if (!alreadyStoredBestScore) {
+                    storeBestScore = true;
+                } else {
+                    storeBestScore = false;
+                }
+            }
 
             shaftCollision = false;
             coinCollision = false;
             if (incrementLives) {
                 incrementLives = false;
-                if ($scope.lives < 10) $scope.lives+= 1;
+                if ($scope.lives < 10) $scope.lives += 1;
                 else $scope.lives = 10;
-                setTimeout(function () {
+                setTimeout(function() {
                     collisionObject = {};
-                }, 5000 )
+                }, 5000)
             }
             if (decrementLives) {
                 decrementLives = false;
-                if ($scope.lives > 0) $scope.lives-= 1;
+                if ($scope.lives > 0) $scope.lives -= 1;
                 else $scope.gameOver = true;
                 resetSpeed();
-                setTimeout(function () {
+                setTimeout(function() {
                     collisionObject = {};
-                }, 5000 )
+                }, 5000)
             }
 
             shaftSpeed += 0.0005;
@@ -548,7 +695,7 @@
                 if (items[i].position.y > 350 && items[i].itemType !== 'spikyShaft') {
                     changeItemPositionX(items[i], items);
                     items[i].position.y = -350;
-                } else if (items[i].position.y > 500 && items[i].itemType === 'spikyShaft')  {
+                } else if (items[i].position.y > 500 && items[i].itemType === 'spikyShaft') {
                     items[i].position.y = -500;
                 } else {
                     // check for getting coins
