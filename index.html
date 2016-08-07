@@ -47,10 +47,11 @@
 
     #dashboard {
         position: absolute;
+        top: 1%;
     }
 
     #level {
-        font-size: 30px;
+        font-size: 35px;
     }
 
     #play {
@@ -170,9 +171,8 @@
 <body ng-app="threeDShaft" ng-controller="threeDShaft">
     <div id="world">
         <div id="dashboard" ng-hide="gameOver || !playing">
-            <p id="level">地下第 {{ level }} 階</p>
+            <p id="level">B{{ level }}</p>
             <p id="score">分數: {{ score }} </p>
-            <p id="life">生命值: {{ lives }}</p>
         </div>
         <button name="restart" ng-show="gameOver" ng-click="restart()">TRY AGAIN</button>
         <ul class="scoreboard" ng-show="gameOver">
@@ -196,9 +196,7 @@
 
         var camera, scene, renderer;
         var items = [];
-        var shaftSpeed = 3;
-        var rotSpeed = 0.2;
-        var shaftHeight = 20;
+        var lives = [];
 
         var upKeyDown = false;
         var downKeyDown = false;
@@ -208,11 +206,13 @@
         var player;
         var playerSpeed = 3;
         var playerRadius = 20;
+        var shaftSpeed = 3;
+        var rotSpeed = 0.2;
+        var shaftHeight = 20;
         var shaftCollision, coinCollision;
+        var collisionObject = {};
         var incrementLives = false;
         var decrementLives = false;
-        var collisionObject = {};
-        var hasIncSpeed = false;
 
         var gameoverObject;
         var scoreboard;
@@ -272,6 +272,7 @@
             purple: 0xa48bff,
             blue: 0x69ceec,
             yellow: 0xf4c637,
+            yellowDark: 0xffc72a,
             emerald: 0x019875,
             tangerine: 0xf05442
         };
@@ -305,6 +306,10 @@
         });
         var yellowMaterial = new THREE.MeshPhongMaterial({
             color: Colors.yellow,
+            shading: THREE.FlatShading
+        });
+        var yellowDarkMaterial = new THREE.MeshPhongMaterial({
+            color: Colors.yellowDark,
             shading: THREE.FlatShading
         });
         var pinkMaterial = new THREE.MeshPhongMaterial({
@@ -349,6 +354,7 @@
             createDisappearingShafts(platformGeometry);
             createSpikes(redMaterial);
             createGameover3Dtext(scene);
+            createLives(scene);
 
             // event listenters
             document.addEventListener('keydown', onKeyDown, false);
@@ -646,7 +652,39 @@
             }
         }
 
+        function createLives (scene) {
+            var x = -185;
+            var barGeo, bar;
+            for (var i = 0; i < 10; i ++) {
+                barGeo = new THREE.BoxBufferGeometry(7, 20, 20);
+                barGeo = new THREE.BoxBufferGeometry(7, 20, 20);
+                bar = new THREE.Mesh(barGeo, yellowDarkMaterial);
+                bar.position.set(x, 180, 100);
+                scene.add(bar);
+                bar.visible = false;
+                lives.push(bar);
+                x += 10;
+            }
+        }
+
+        function updateLives (numLives) {
+            if ($scope.gameOver || !$scope.playing) {
+                for (var i = 0; i < 10; i++) {
+                    lives[i].visible = false;
+                }
+            } else {
+                for (var i = 0; i < numLives; i++) {
+                    lives[i].visible = true;
+                }
+                for (i; i < 10; i++) {
+                    lives[i].visible = false;
+                }
+            }
+        }
+
         function animate() {
+
+            updateLives($scope.lives);
 
             if (storeBestScore) {
                 updateScoreBoard($scope.score, $scope.$storage.bestScores, $scope.numBestScores)
