@@ -11,6 +11,7 @@ body {
     }
 
     li {
+        font-family: 'Open Sans', sans-serif;
         display: flex;
         justify-content: space-around;
         margin: 5px 0;

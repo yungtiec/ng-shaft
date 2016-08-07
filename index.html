@@ -258,7 +258,7 @@
         }
 
         function createPlayer() {
-            if (player) player.position.set(0, -1000, 0);
+            if (player) scene.remove(player);
             var cubeGeometry = new THREE.CubeGeometry(20, 40, 20);
             player = new THREE.Mesh(cubeGeometry);
             scene.add(player);
@@ -552,6 +552,7 @@
 
             if ($scope.gameOver) {
                 updateLives(0);
+                scene.remove(player);
                 scoreboard.visible = true;
                 gameoverObject.visible = true;
                 if (!alreadyStoredBestScore) {
@@ -634,23 +635,24 @@
                         if (collisionResults[0].object.itemType === 'shaft') {
                             if (collisionObject !== collisionResults[0].object) {
                                 incrementLives = true;
-                                collisionObject = collisionResults[0].object;
                                 jumpAudio.play();
                             }
                         }
                         if (collisionResults[0].object.itemType === 'spikyShaft') {
                             if (collisionObject !== collisionResults[0].object) {
                                 decrementLives = true;
-                                collisionObject = collisionResults[0].object;
                                 rightCrossAudio.play();
                             }
                         }
                         if (collisionResults[0].object.itemType === 'byeShaft') {
-                            jumpAudio.play();
                             setTimeout(function() {
                                 changePosition(collisionResults[0].object, items);
                             }, 300);
+                            if (collisionObject !== collisionResults[0].object) {
+                                jumpAudio.play();
+                            }
                         }
+                        collisionObject = collisionResults[0].object;
                     }
                 }
 
