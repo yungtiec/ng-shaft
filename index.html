@@ -6,181 +6,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="main.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ngStorage/0.3.6/ngStorage.min.js"></script>
     <script type="text/javascript" src="light.js"></script>
-    <style>
-    body {
-        margin: 0px;
-        background: #69ceec;
-        overflow: hidden;
-        font-family: 'Open Sans', sans-serif;
-    }
-
-    ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    li {
-        display: flex;
-        justify-content: space-around;
-        margin: 5px 0;
-    }
-
-    p {
-        color: white;
-        margin: 8px;
-    }
-
-    span {
-        margin: 0 75px;
-        font-size: 1.3em;
-    }
-
-    #world {
-        margin: 0px;
-        background: #69ceec;
-        overflow: hidden;
-    }
-
-    #dashboard {
-        position: absolute;
-        bottom: 1%;
-        left: 50%;
-        transform: translateX(-50%)
-    }
-
-    #level,
-    #score {
-        color: white;
-        font-size: 30px;
-    }
-
-    #play {
-        position: absolute;
-        width: 500px;
-        height: 200px;
-        background-color: gray;
-        opacity: 0.75;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    #gameover {
-        position: absolute;
-        width: 500px;
-        height: 200px;
-        background-color: gray;
-        opacity: 0.75;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    #logo {
-        position: relative;
-        top: 60px;
-        color: #ef7c91;
-        font-size: 1.2em;
-        -webkit-text-shadow: 0px 3px 0px #ec4141;
-        -moz-text-shadow: 0px 3px 0px #ec4141;
-        text-shadow: 0px 3px 0px #ec4141;
-    }
-
-    .scoreboard {
-        color: #ef7c91;
-        position: absolute;
-        top: 29%;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 1.2em;
-        -webkit-text-shadow: 0px 3px 0px #ec4141;
-        -moz-text-shadow: 0px 3px 0px #ec4141;
-        text-shadow: 0px 3px 0px #ec4141;
-    }
-
-    button[name=start] {
-        font-family: 'Open Sans', sans-serif;
-        position: absolute;
-        top: 200%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.2em;
-        width: 280px;
-        color: #FFF;
-        display: block;
-        text-decoration: none;
-        margin: 0 auto;
-        border: solid 1px #f79472;
-        background: #f79472;
-        text-align: center;
-        padding: 10px 30px;
-        -webkit-transition: all 0.1s;
-        -moz-transition: all 0.1s;
-        transition: all 0.1s;
-        -webkit-box-shadow: 0px 9px 0px #e6805c;
-        -moz-box-shadow: 0px 9px 0px #e6805c;
-        box-shadow: 0px 9px 0px #e6805c;
-    }
-
-    button[name=start]:active {
-        -webkit-box-shadow: 0px 2px 0px #e6805c;
-        -moz-box-shadow: 0px 2px 0px #e6805c;
-        box-shadow: 0px 2px 0px #e6805c;
-    }
-
-    button[name=start]:focus {
-        outline: 0;
-    }
-
-    button[name=restart] {
-        font-family: 'Open Sans', sans-serif;
-        position: absolute;
-        top: 75%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.2em;
-        width: 380px;
-        color: #FFF;
-        display: block;
-        text-decoration: none;
-        margin: 0 auto;
-        border: solid 1px #f79472;
-        background: #f79472;
-        text-align: center;
-        padding: 10px 30px;
-        -webkit-transition: all 0.1s;
-        -moz-transition: all 0.1s;
-        transition: all 0.1s;
-        -webkit-box-shadow: 0px 9px 0px #e6805c;
-        -moz-box-shadow: 0px 9px 0px #e6805c;
-        box-shadow: 0px 9px 0px #e6805c;
-    }
-
-    button[name=restart]:active {
-        -webkit-box-shadow: 0px 2px 0px #e6805c;
-        -moz-box-shadow: 0px 2px 0px #e6805c;
-        box-shadow: 0px 2px 0px #e6805c;
-    }
-
-    button[name=restart]:focus {
-        outline: 0;
-    }
-    </style>
 </head>
 
 <body ng-app="threeDShaft" ng-controller="threeDShaft">
     <div id="world">
         <div id="dashboard" ng-hide="gameOver || !playing">
             <p id="level">B{{ level }} 分數: {{ score }}</p>
-            <!-- <p id="score"> </p> -->
         </div>
         <button name="restart" ng-show="gameOver" ng-click="restart()">TRY AGAIN</button>
         <ul class="scoreboard" ng-show="gameOver">
-            <li>YOUR BEST SCORES</li>
+            <li>YOUR HIGHEST SCORES</li>
             <li ng-repeat="score in $storage.bestScores track by $index">
                 <span>{{score}}</span>
             </li>
@@ -222,6 +62,19 @@
         var scoreboard;
         var storeBestScore = false;
         var alreadyStoredBestScore = false;
+
+        var jumpAudio = document.createElement('audio');
+        var rightCrossAudio = document.createElement('audio');
+        var screamAudio = document.createElement('audio');
+        var coinAudio = document.createElement('audio');
+        jumpAudio.src = 'jump.mp3';
+        rightCrossAudio.src = 'rightCross.mp3';
+        screamAudio.src = 'scream.mp3';
+        coinAudio.src = 'coin.mp3'
+        jumpAudio.load();
+        rightCrossAudio.load();
+        screamAudio.load();
+        coinAudio.load();
 
         $scope.$storage = $localStorage.$default({
             bestScores: []
@@ -660,7 +513,7 @@
         }
 
         function createLives(scene) {
-            var x = -40;
+            var x = -45;
             var barGeo, bar;
             for (var i = 0; i < 10; i++) {
                 barGeo = new THREE.BoxBufferGeometry(7, 20, 20);
@@ -702,6 +555,7 @@
                 scoreboard.visible = true;
                 gameoverObject.visible = true;
                 if (!alreadyStoredBestScore) {
+                    screamAudio.play();
                     storeBestScore = true;
                 } else {
                     storeBestScore = false;
@@ -750,6 +604,7 @@
                         if (player) {
                             if (items[i].position.distanceTo(player.position) < 15) {
                                 changePosition(items[i], items);
+                                coinAudio.play();
                                 $scope.score += 100;
                             }
                         }
@@ -779,16 +634,19 @@
                         if (collisionResults[0].object.itemType === 'shaft') {
                             if (collisionObject !== collisionResults[0].object) {
                                 incrementLives = true;
-                                collisionObject = collisionResults[0].object
+                                collisionObject = collisionResults[0].object;
+                                jumpAudio.play();
                             }
                         }
                         if (collisionResults[0].object.itemType === 'spikyShaft') {
                             if (collisionObject !== collisionResults[0].object) {
                                 decrementLives = true;
-                                collisionObject = collisionResults[0].object
+                                collisionObject = collisionResults[0].object;
+                                rightCrossAudio.play();
                             }
                         }
                         if (collisionResults[0].object.itemType === 'byeShaft') {
+                            jumpAudio.play();
                             setTimeout(function() {
                                 changePosition(collisionResults[0].object, items);
                             }, 300);
