@@ -47,11 +47,15 @@
 
     #dashboard {
         position: absolute;
-        top: 1%;
+        bottom: 1%;
+        left: 50%;
+        transform: translateX(-50%)
     }
 
-    #level {
-        font-size: 35px;
+    #level,
+    #score {
+        color: white;
+        font-size: 30px;
     }
 
     #play {
@@ -129,7 +133,7 @@
     }
 
     button[name=start]:focus {
-        outline:0;
+        outline: 0;
     }
 
     button[name=restart] {
@@ -163,7 +167,7 @@
     }
 
     button[name=restart]:focus {
-        outline:0;
+        outline: 0;
     }
     </style>
 </head>
@@ -171,8 +175,8 @@
 <body ng-app="threeDShaft" ng-controller="threeDShaft">
     <div id="world">
         <div id="dashboard" ng-hide="gameOver || !playing">
-            <p id="level">B{{ level }}</p>
-            <p id="score">分數: {{ score }} </p>
+            <p id="level">B{{ level }} 分數: {{ score }}</p>
+            <!-- <p id="score"> </p> -->
         </div>
         <button name="restart" ng-show="gameOver" ng-click="restart()">TRY AGAIN</button>
         <ul class="scoreboard" ng-show="gameOver">
@@ -245,6 +249,8 @@
 
         $scope.restart = function() {
             $scope.gameOver = false;
+            updateLives(10);
+            $scope.lives = 10;
             $scope.level = 1;
             $scope.score = 0;
             $scope.startCount();
@@ -399,6 +405,7 @@
         }
 
         function createPlayer() {
+            if (player) player.position.set(0, -1000, 0);
             var cubeGeometry = new THREE.CubeGeometry(20, 40, 20);
             player = new THREE.Mesh(cubeGeometry);
             scene.add(player);
@@ -652,10 +659,10 @@
             }
         }
 
-        function createLives (scene) {
-            var x = -185;
+        function createLives(scene) {
+            var x = -40;
             var barGeo, bar;
-            for (var i = 0; i < 10; i ++) {
+            for (var i = 0; i < 10; i++) {
                 barGeo = new THREE.BoxBufferGeometry(7, 20, 20);
                 barGeo = new THREE.BoxBufferGeometry(7, 20, 20);
                 bar = new THREE.Mesh(barGeo, yellowDarkMaterial);
@@ -667,7 +674,8 @@
             }
         }
 
-        function updateLives (numLives) {
+        function updateLives(numLives) {
+            if (numLives <= 0) $scope.gameOver = true;
             if ($scope.gameOver || !$scope.playing) {
                 for (var i = 0; i < 10; i++) {
                     lives[i].visible = false;
@@ -684,14 +692,13 @@
 
         function animate() {
 
-            updateLives($scope.lives);
-
             if (storeBestScore) {
                 updateScoreBoard($scope.score, $scope.$storage.bestScores, $scope.numBestScores)
                 alreadyStoredBestScore = true;
             }
 
             if ($scope.gameOver) {
+                updateLives(0);
                 scoreboard.visible = true;
                 gameoverObject.visible = true;
                 if (!alreadyStoredBestScore) {
@@ -699,6 +706,8 @@
                 } else {
                     storeBestScore = false;
                 }
+            } else {
+                updateLives($scope.lives);
             }
 
             shaftCollision = false;
