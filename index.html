@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>three.js webgl - geometry - cube</title>
+    <title>ns-shafts</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
@@ -53,7 +53,7 @@
         var shaftSpeed = 3;
         var rotSpeed = 0.2;
         var shaftHeight = 20;
-        var shaftCollision, coinCollision;
+        var shaftYCollision, coinCollision;
         var collisionObject = {};
         var incrementLives = false;
         var decrementLives = false;
@@ -62,6 +62,11 @@
         var scoreboard;
         var storeBestScore = false;
         var alreadyStoredBestScore = false;
+
+        var topNormalVec = {x:0, y:1, z:0};
+        var bottomNormalVec = {x:0, y:-1, z:0};
+        var leftNormalVec = {x:-1, y:0, z:0};
+        var rightNormalVec = {x:1, y:0, z:0};
 
         var jumpAudio = document.createElement('audio');
         var rightCrossAudio = document.createElement('audio');
@@ -543,7 +548,21 @@
             }
         }
 
+        function compareWithUnitNormVec (vec, unitNormVec) {
+            var compareX = vec.x === unitNormVec.x;
+            var compareY = vec.y === unitNormVec.y;
+            var compareZ = vec.z === unitNormVec.z;
+            return [compareX, compareY, compareZ];
+        }
+
         function animate() {
+
+            shaftXCollisionFromLeft = false;
+            shaftXCollisionFromRight = false;
+            shaftYCollision = false;
+            coinCollision = false;
+            shaftSpeed += 0.0005;
+            playerSpeed = shaftSpeed;
 
             if (storeBestScore) {
                 updateScoreBoard($scope.score, $scope.$storage.bestScores, $scope.numBestScores)
@@ -551,7 +570,6 @@
             }
 
             if ($scope.gameOver) {
-                updateLives(0);
                 scene.remove(player);
                 scoreboard.visible = true;
                 gameoverObject.visible = true;
@@ -561,12 +579,11 @@
                 } else {
                     storeBestScore = false;
                 }
+                updateLives(0);
             } else {
                 updateLives($scope.lives);
             }
 
-            shaftCollision = false;
-            coinCollision = false;
             if (incrementLives) {
                 incrementLives = false;
                 if ($scope.lives < 10) $scope.lives += 1;
@@ -575,6 +592,7 @@
                     collisionObject = {};
                 }, 5000)
             }
+
             if (decrementLives) {
                 decrementLives = false;
                 if ($scope.lives > 0) $scope.lives -= 1;
@@ -584,9 +602,6 @@
                     collisionObject = {};
                 }, 5000)
             }
-
-            shaftSpeed += 0.0005;
-            playerSpeed = shaftSpeed;
 
             requestAnimationFrame(animate);
 
@@ -631,37 +646,45 @@
                     var ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
                     var collisionResults = ray.intersectObjects(items);
                     if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
-                        shaftCollision = true;
-                        if (collisionResults[0].object.itemType === 'shaft') {
-                            if (collisionObject !== collisionResults[0].object) {
-                                incrementLives = true;
-                                jumpAudio.play();
+                        var [compareTopX, compareTopY, compareTopZ] = compareWithUnitNormVec(collisionResults[0].face.normal, topNormalVec)
+                        var [compareLeftX, compareLeftY, compareLeftZ] = compareWithUnitNormVec(collisionResults[0].face.normal, leftNormalVec);
+                        var [compareRightX, compareRightY, compareRightZ] = compareWithUnitNormVec(collisionResults[0].face.normal, rightNormalVec);
+                        if (compareTopX && compareTopY && compareTopZ) {
+                            shaftYCollision = true;
+                            if (collisionResults[0].object.itemType === 'shaft') {
+                                if (collisionObject !== collisionResults[0].object) {
+                                    incrementLives = true;
+                                    jumpAudio.play();
+                                }
                             }
-                        }
-                        if (collisionResults[0].object.itemType === 'spikyShaft') {
-                            if (collisionObject !== collisionResults[0].object) {
-                                decrementLives = true;
-                                rightCrossAudio.play();
+                            if (collisionResults[0].object.itemType === 'spikyShaft') {
+                                if (collisionObject !== collisionResults[0].object) {
+                                    decrementLives = true;
+                                    rightCrossAudio.play();
+                                }
                             }
-                        }
-                        if (collisionResults[0].object.itemType === 'byeShaft') {
-                            setTimeout(function() {
-                                changePosition(collisionResults[0].object, items);
-                            }, 300);
-                            if (collisionObject !== collisionResults[0].object) {
-                                jumpAudio.play();
+                            if (collisionResults[0].object.itemType === 'byeShaft') {
+                                setTimeout(function() {
+                                    changePosition(collisionResults[0].object, items);
+                                }, 300);
+                                if (collisionObject !== collisionResults[0].object) {
+                                    jumpAudio.play();
+                                }
                             }
+                            collisionObject = collisionResults[0].object;
                         }
-                        collisionObject = collisionResults[0].object;
+                        if (compareLeftX && compareLeftY && compareLeftZ) shaftXCollisionFromLeft = true;
+                        if (compareRightX && compareRightY && compareRightZ) shaftXCollisionFromRight = true;
+
                     }
                 }
 
                 // player movement
                 if (upKeyDown == true) player.position.y += playerSpeed;
                 if (downKeyDown == true) player.position.y -= playerSpeed;
-                if (leftKeyDown == true) player.position.x -= playerSpeed;
-                if (rightKeyDown == true) player.position.x += playerSpeed;
-                if (shaftCollision == true) {
+                if (leftKeyDown == true && !shaftXCollisionFromRight) player.position.x -= playerSpeed;
+                if (rightKeyDown == true && !shaftXCollisionFromLeft) player.position.x += playerSpeed;
+                if (shaftYCollision == true) {
                     player.position.y += playerSpeed;
                 } else {
                     player.position.y -= playerSpeed * 2;
