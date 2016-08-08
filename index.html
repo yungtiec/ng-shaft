@@ -10,7 +10,6 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ngStorage/0.3.6/ngStorage.min.js"></script>
-    <script type="text/javascript" src="light.js"></script>
 </head>
 
 <body ng-app="threeDShaft" ng-controller="threeDShaft">
@@ -34,6 +33,9 @@
         </div>
     </div>
     <script src="src/three.js"></script>
+    <script type="text/javascript" src="model.js"></script>
+    <script type="text/javascript" src="src/ObjectLoader.js"></script>
+    <script type="text/javascript" src="light.js"></script>
     <script>
     var app = angular.module('threeDShaft', ['ngStorage']);
     app.controller('threeDShaft', function($scope, $interval, $localStorage) {
@@ -48,6 +50,7 @@
         var rightKeyDown = false;
 
         var player;
+        var playerClone;
         var playerSpeed = 3;
         var playerRadius = 20;
         var shaftSpeed = 3;
@@ -63,10 +66,26 @@
         var storeBestScore = false;
         var alreadyStoredBestScore = false;
 
-        var topNormalVec = {x:0, y:1, z:0};
-        var bottomNormalVec = {x:0, y:-1, z:0};
-        var leftNormalVec = {x:-1, y:0, z:0};
-        var rightNormalVec = {x:1, y:0, z:0};
+        var topNormalVec = {
+            x: 0,
+            y: 1,
+            z: 0
+        };
+        var bottomNormalVec = {
+            x: 0,
+            y: -1,
+            z: 0
+        };
+        var leftNormalVec = {
+            x: -1,
+            y: 0,
+            z: 0
+        };
+        var rightNormalVec = {
+            x: 1,
+            y: 0,
+            z: 0
+        };
 
         var jumpAudio = document.createElement('audio');
         var rightCrossAudio = document.createElement('audio');
@@ -113,7 +132,7 @@
             $scope.score = 0;
             $scope.startCount();
             resetSpeed()
-            createPlayer();
+            createPlayer('TC')
             scoreboard.visible = false;
             gameoverObject.visible = false;
             if (storeBestScore) storeBestScore = false;
@@ -123,7 +142,7 @@
         $scope.start = function() {
             $scope.playing = true;
             resetSpeed()
-            createPlayer();
+            createPlayer('TC')
             $scope.startCount();
         };
 
@@ -262,18 +281,73 @@
             }
         }
 
-        function createPlayer() {
-            if (player) scene.remove(player);
-            var cubeGeometry = new THREE.CubeGeometry(20, 40, 20);
-            player = new THREE.Mesh(cubeGeometry);
-            scene.add(player);
-
+        function createPlayer(name) {
+            // default player is a cube
+            if (!name) {
+                if (player) scene.remove(player);
+                var cubeGeometry = new THREE.CubeGeometry(20, 40, 20);
+                player = new THREE.Mesh(cubeGeometry);
+                scene.add(player);
+            }
+            if (name === 'TC') {
+                createTammyChu();
+            }
             var platformGeometry = new THREE.BoxBufferGeometry(100, 20, 100, 20, 20, 20);
             var mesh = new THREE.Mesh(platformGeometry, blueMaterial);
             mesh.position.set(0, -100, 0);
             mesh.itemType = 'shaft';
             scene.add(mesh);
             items.push(mesh);
+            playerClone = (player.children.length > 1) ? player.children[0] : player;
+        }
+
+        function createTammyChu() {
+            var mesh;
+            player = new THREE.Object3D();//create an empty container
+            var face = new THREE.CubeGeometry(40, 40, 40);
+            var faceMaterial = new THREE.MeshPhongMaterial({
+                color: 0xFFD479,
+                shading: THREE.FlatShading
+            })
+            mesh = new THREE.Mesh(face, faceMaterial);
+            player.add( mesh );
+
+            var hatBase = new THREE.CubeGeometry(60, 8, 40);
+            var hatMaterial = new THREE.MeshPhongMaterial({
+                color: 0x014175,
+                shading: THREE.FlatShading
+            })
+            mesh = new THREE.Mesh(hatBase, hatMaterial);
+            mesh.position.set(10, 24, 0);
+            player.add( mesh );
+
+            var hat = new THREE.CubeGeometry(40, 20, 40);
+            var hatMaterial = new THREE.MeshPhongMaterial({
+                color: 0x014175,
+                shading: THREE.FlatShading
+            })
+            mesh = new THREE.Mesh(hat, hatMaterial);
+            mesh.position.set(0, 32, 0);
+            player.add( mesh );
+
+            var eye = new THREE.CubeGeometry(10, 2, 2);
+            var eyeMaterial = new THREE.MeshPhongMaterial({
+                color: 0x000000,
+                shading: THREE.FlatShading
+            })
+            mesh = new THREE.Mesh(eye, eyeMaterial);
+            mesh.position.set(-10, 8, 20);
+            player.add( mesh );
+
+            var eye = new THREE.CubeGeometry(10, 2, 2);
+            var eyeMaterial = new THREE.MeshPhongMaterial({
+                color: 0x000000,
+                shading: THREE.FlatShading
+            })
+            mesh = new THREE.Mesh(eye, eyeMaterial);
+            mesh.position.set(10, 8, 20);
+            player.add( mesh );
+            scene.add(player);
         }
 
         function onKeyUp(e) {
@@ -548,7 +622,7 @@
             }
         }
 
-        function compareWithUnitNormVec (vec, unitNormVec) {
+        function compareWithUnitNormVec(vec, unitNormVec) {
             var compareX = vec.x === unitNormVec.x;
             var compareY = vec.y === unitNormVec.y;
             var compareZ = vec.z === unitNormVec.z;
@@ -618,7 +692,7 @@
                     // check for getting coins
                     if (items[i].itemType === 'coin') {
                         if (player) {
-                            if (items[i].position.distanceTo(player.position) < 15) {
+                            if (items[i].position.distanceTo(playerClone.position) < 15) {
                                 changePosition(items[i], items);
                                 coinAudio.play();
                                 $scope.score += 100;
@@ -631,24 +705,26 @@
             }
 
             if ($scope.playing) {
-                if (player.position.y < -310) {
+                if (playerClone.position.y < -310) {
                     $scope.gameOver = true;
                     resetSpeed()
                     scene.remove(player)
                 }
 
                 // check for landing on shaft
-                var originPoint = player.position.clone();
-                for (var vertexIndex = 0; vertexIndex < player.geometry.vertices.length; vertexIndex++) {
-                    var localVertex = player.geometry.vertices[vertexIndex].clone();
-                    var globalVertex = localVertex.applyMatrix4(player.matrix);
-                    var directionVector = globalVertex.sub(player.position);
+                var originPoint = playerClone.position.clone();
+                for (var vertexIndex = 0; vertexIndex < playerClone.geometry.vertices.length; vertexIndex++) {
+                    var localVertex = playerClone.geometry.vertices[vertexIndex].clone();
+                    var globalVertex = localVertex.applyMatrix4(playerClone.matrix);
+                    var directionVector = globalVertex.sub(playerClone.position);
                     var ray = new THREE.Raycaster(originPoint, directionVector.clone().normalize());
                     var collisionResults = ray.intersectObjects(items);
                     if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
                         var [compareTopX, compareTopY, compareTopZ] = compareWithUnitNormVec(collisionResults[0].face.normal, topNormalVec)
                         var [compareLeftX, compareLeftY, compareLeftZ] = compareWithUnitNormVec(collisionResults[0].face.normal, leftNormalVec);
                         var [compareRightX, compareRightY, compareRightZ] = compareWithUnitNormVec(collisionResults[0].face.normal, rightNormalVec);
+                        if (compareLeftX && compareLeftY && compareLeftZ) shaftXCollisionFromLeft = true;
+                        if (compareRightX && compareRightY && compareRightZ) shaftXCollisionFromRight = true;
                         if (compareTopX && compareTopY && compareTopZ) {
                             shaftYCollision = true;
                             if (collisionResults[0].object.itemType === 'shaft') {
@@ -664,8 +740,8 @@
                                 }
                             }
                             if (collisionResults[0].object.itemType === 'byeShaft') {
-                                setTimeout(function() {
-                                    changePosition(collisionResults[0].object, items);
+                                setTimeout(function () {
+                                    if (collisionResults[0]) changePosition(collisionResults[0].object, items);
                                 }, 300);
                                 if (collisionObject !== collisionResults[0].object) {
                                     jumpAudio.play();
@@ -673,21 +749,34 @@
                             }
                             collisionObject = collisionResults[0].object;
                         }
-                        if (compareLeftX && compareLeftY && compareLeftZ) shaftXCollisionFromLeft = true;
-                        if (compareRightX && compareRightY && compareRightZ) shaftXCollisionFromRight = true;
-
                     }
                 }
 
                 // player movement
                 if (upKeyDown == true) player.position.y += playerSpeed;
                 if (downKeyDown == true) player.position.y -= playerSpeed;
-                if (leftKeyDown == true && !shaftXCollisionFromRight) player.position.x -= playerSpeed;
-                if (rightKeyDown == true && !shaftXCollisionFromLeft) player.position.x += playerSpeed;
+                if (leftKeyDown == true && !shaftXCollisionFromRight) {
+                    player.children.forEach(function (child) {
+                        child.position.x -= playerSpeed;
+                    })
+                    // player.position.x -= playerSpeed
+                };
+                if (rightKeyDown == true && !shaftXCollisionFromLeft) {
+                    player.children.forEach(function (child) {
+                        child.position.x += playerSpeed;
+                    })
+                    // player.position.x += playerSpeed;
+                }
                 if (shaftYCollision == true) {
-                    player.position.y += playerSpeed;
+                    player.children.forEach(function (child) {
+                        child.position.y += playerSpeed;
+                    })
+                    // player.position.y += playerSpeed;
                 } else {
-                    player.position.y -= playerSpeed * 2;
+                    player.children.forEach(function (child) {
+                        child.position.y -= playerSpeed * 2;
+                    })
+                    // player.position.y -= playerSpeed * 2;
                 }
 
             }
