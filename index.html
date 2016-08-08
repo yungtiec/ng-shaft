@@ -44,7 +44,6 @@
         </div>
     </div>
     <script src="src/three.js"></script>
-    <script type="text/javascript" src="model.js"></script>
     <script type="text/javascript" src="src/ObjectLoader.js"></script>
     <script type="text/javascript" src="light.js"></script>
     <script>
@@ -357,7 +356,7 @@
         function createDisplayPlayer() {
             // ideally should reuse player instance instead of creating new one
             // cube
-            var cubeGeometry = new THREE.CubeGeometry(20, 40, 20);
+            var cubeGeometry = new THREE.CubeGeometry(40, 40, 40);
             cubePlayer = new THREE.Mesh(cubeGeometry);
             cubePlayer.position.set(-75, 0, 100);
             scene.add(cubePlayer);
@@ -521,8 +520,10 @@
         }
 
         function createCube () {
-            var cubeGeometry = new THREE.CubeGeometry(20, 40, 20);
-            player = new THREE.Mesh(cubeGeometry);
+            var cubeGeometry = new THREE.CubeGeometry(40, 40, 40);
+            var fullstack = new THREE.TextureLoader().load( 'src/fullstack.png' );
+            var material = new THREE.MeshBasicMaterial( { map: fullstack } );
+            player = new THREE.Mesh(cubeGeometry, material);
             scene.add(player);
             return player;
         }
