@@ -710,6 +710,11 @@
                     resetSpeed()
                     scene.remove(player)
                 }
+                if (playerClone.position.y > 310) {
+                    setTimeout(function () {
+                        decrementLives = true;
+                    }, 1000)
+                }
 
                 // check for landing on shaft
                 var originPoint = playerClone.position.clone();
