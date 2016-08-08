@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/yungtiec/ng-shaft/issues"
   },
-  "homepage": "https://github.com/yungtiec/ng-shaft#readme"
+  "homepage": "https://github.com/yungtiec/ng-shaft#readme",
+  "dependencies": {
+    "connect": "^3.4.1",
+    "serve-static": "^1.11.1"
+  }
 }
