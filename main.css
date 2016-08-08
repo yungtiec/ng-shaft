@@ -1,159 +1,186 @@
 body {
-        margin: 0px;
-        background: #69ceec;
-        overflow: hidden;
-        font-family: 'Open Sans', sans-serif;
-    }
+    margin: 0px;
+    background: #013A71;
+    overflow: hidden;
+    font-family: 'Open Sans', sans-serif;
+}
 
-    ul {
-        list-style: none;
-        padding: 0;
-    }
+ul {
+    list-style: none;
+    padding: 0;
+}
 
-    li {
-        font-family: 'Open Sans', sans-serif;
-        display: flex;
-        justify-content: space-around;
-        margin: 5px 0;
-    }
+li {
+    font-family: 'Open Sans', sans-serif;
+    display: flex;
+    justify-content: space-around;
+    margin: 5px 0;
+}
 
-    p {
-        color: white;
-        margin: 8px;
-    }
+p {
+    color: white;
+    margin: 8px;
+}
 
-    span {
-        margin: 0 75px;
-        font-size: 1.3em;
-    }
+span {
+    margin: 0 75px;
+    font-size: 1.3em;
+}
 
-    #world {
-        margin: 0px;
-        background: #69ceec;
-        overflow: hidden;
-    }
+#world {
+    margin: 0px;
+    background: #013A71;
+    overflow: hidden;
+}
 
-    #dashboard {
-        position: absolute;
-        bottom: 1%;
-        left: 50%;
-        transform: translateX(-50%)
-    }
+#dashboard {
+    position: absolute;
+    bottom: 1%;
+    left: 50%;
+    transform: translateX(-50%)
+}
 
-    #level,
-    #score {
-        color: white;
-        font-size: 30px;
-    }
+#level,
+#score {
+    color: white;
+    font-size: 30px;
+}
 
-    #play {
-        position: absolute;
-        width: 500px;
-        height: 200px;
-        background-color: gray;
-        opacity: 0.75;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
+#play {
+    position: absolute;
+    width: 500px;
+    height: 200px;
+    background-color: gray;
+    opacity: 0.75;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
 
-    #gameover {
-        position: absolute;
-        width: 500px;
-        height: 200px;
-        background-color: gray;
-        opacity: 0.75;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
+#gameover {
+    position: absolute;
+    width: 500px;
+    height: 200px;
+    background-color: gray;
+    opacity: 0.75;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
 
-    #logo {
-        position: relative;
-        top: 60px;
-        color: #ef7c91;
-        font-size: 1.2em;
-        -webkit-text-shadow: 0px 3px 0px #ec4141;
-        -moz-text-shadow: 0px 3px 0px #ec4141;
-        text-shadow: 0px 3px 0px #ec4141;
-    }
+#logo {
+    position: relative;
+    top: 60px;
+    color: #ef7c91;
+    font-size: 1.2em;
+    -webkit-text-shadow: 0px 3px 0px #ec4141;
+    -moz-text-shadow: 0px 3px 0px #ec4141;
+    text-shadow: 0px 3px 0px #ec4141;
+}
 
-    .scoreboard {
-        color: #ef7c91;
-        position: absolute;
-        top: 29%;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 1.2em;
-        -webkit-text-shadow: 0px 3px 0px #ec4141;
-        -moz-text-shadow: 0px 3px 0px #ec4141;
-        text-shadow: 0px 3px 0px #ec4141;
-    }
+.scoreboard {
+    color: #ef7c91;
+    position: absolute;
+    top: 29%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2em;
+    -webkit-text-shadow: 0px 3px 0px #ec4141;
+    -moz-text-shadow: 0px 3px 0px #ec4141;
+    text-shadow: 0px 3px 0px #ec4141;
+}
 
-    button[name=start] {
-        font-family: 'Open Sans', sans-serif;
-        position: absolute;
-        top: 200%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.2em;
-        width: 280px;
-        color: #FFF;
-        display: block;
-        text-decoration: none;
-        margin: 0 auto;
-        border: solid 1px #f79472;
-        background: #f79472;
-        text-align: center;
-        padding: 10px 30px;
-        -webkit-transition: all 0.1s;
-        -moz-transition: all 0.1s;
-        transition: all 0.1s;
-        -webkit-box-shadow: 0px 9px 0px #e6805c;
-        -moz-box-shadow: 0px 9px 0px #e6805c;
-        box-shadow: 0px 9px 0px #e6805c;
-    }
+button[name=start] {
+    font-family: 'Open Sans', sans-serif;
+    position: absolute;
+    top: 200%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2em;
+    width: 280px;
+    color: #FFF;
+    display: block;
+    text-decoration: none;
+    margin: 0 auto;
+    border: solid 1px #f79472;
+    background: #f79472;
+    text-align: center;
+    padding: 10px 30px;
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    transition: all 0.1s;
+    -webkit-box-shadow: 0px 9px 0px #e6805c;
+    -moz-box-shadow: 0px 9px 0px #e6805c;
+    box-shadow: 0px 9px 0px #e6805c;
+}
 
-    button[name=start]:active {
-        -webkit-box-shadow: 0px 2px 0px #e6805c;
-        -moz-box-shadow: 0px 2px 0px #e6805c;
-        box-shadow: 0px 2px 0px #e6805c;
-    }
+button[name=start]:active {
+    -webkit-box-shadow: 0px 2px 0px #e6805c;
+    -moz-box-shadow: 0px 2px 0px #e6805c;
+    box-shadow: 0px 2px 0px #e6805c;
+}
 
-    button[name=start]:focus {
-        outline: 0;
-    }
+button[name=start]:focus {
+    outline: 0;
+}
 
-    button[name=restart] {
-        font-family: 'Open Sans', sans-serif;
-        position: absolute;
-        top: 75%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.2em;
-        width: 380px;
-        color: #FFF;
-        display: block;
-        text-decoration: none;
-        margin: 0 auto;
-        border: solid 1px #f79472;
-        background: #f79472;
-        text-align: center;
-        padding: 10px 30px;
-        -webkit-transition: all 0.1s;
-        -moz-transition: all 0.1s;
-        transition: all 0.1s;
-        -webkit-box-shadow: 0px 9px 0px #e6805c;
-        -moz-box-shadow: 0px 9px 0px #e6805c;
-        box-shadow: 0px 9px 0px #e6805c;
-    }
+button[name=restart] {
+    font-family: 'Open Sans', sans-serif;
+    position: absolute;
+    top: 75%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2em;
+    width: 380px;
+    color: #FFF;
+    display: block;
+    text-decoration: none;
+    margin: 0 auto;
+    border: solid 1px #f79472;
+    background: #f79472;
+    text-align: center;
+    padding: 10px 30px;
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    transition: all 0.1s;
+    -webkit-box-shadow: 0px 9px 0px #e6805c;
+    -moz-box-shadow: 0px 9px 0px #e6805c;
+    box-shadow: 0px 9px 0px #e6805c;
+}
 
-    button[name=restart]:active {
-        -webkit-box-shadow: 0px 2px 0px #e6805c;
-        -moz-box-shadow: 0px 2px 0px #e6805c;
-        box-shadow: 0px 2px 0px #e6805c;
-    }
+button[name=restart]:active {
+    -webkit-box-shadow: 0px 2px 0px #e6805c;
+    -moz-box-shadow: 0px 2px 0px #e6805c;
+    box-shadow: 0px 2px 0px #e6805c;
+}
 
-    button[name=restart]:focus {
-        outline: 0;
-    }
+button[name=restart]:focus {
+    outline: 0;
+}
+
+#character-board {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%)
+}
+
+#character-board p {
+    color: #013A71;
+    text-align: center;
+}
+
+.choices {
+    color: #013A71;
+    text-align: center;
+    width: 350px;
+    display: flex;
+    justify-content: space-around;
+    position: absolute;
+    left: -30%;
+    top: 450%;
+}
+
+.choices div {
+    cursor: pointer;
+}
