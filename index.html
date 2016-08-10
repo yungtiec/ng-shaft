@@ -854,7 +854,9 @@
         }
 
         function changeItemPositionX(item, items) {
-            var curOccupiedX = items.map(shaft => shaft.position.x);
+            var curOccupiedX = items.map(function(shaft) {
+                return shaft.position.x
+            });
             var xPositionArr = _.range(-400, 400, 100);
             item.position.x = _.sample(xPositionArr);
             //
@@ -873,7 +875,9 @@
         }
 
         function changeItemPositionY(item, items) {
-            var curOccupiedY = items.map(shaft => shaft.position.y);
+            var curOccupiedY = items.map(function(shaft) {
+                return shaft.position.y
+            });
             var yPositionArr = _.range(-350, 350, 50);
             item.position.y = _.sample(yPositionArr);
             //
