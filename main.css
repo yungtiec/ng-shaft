@@ -124,7 +124,33 @@ button[name=start]:focus {
     outline: 0;
 }
 
-button[name=restart] {
+button[name=signin],
+button[name=leaderboard] {
+    font-family: 'Open Sans', sans-serif;
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2em;
+    width: 380px;
+    color: #FFF;
+    display: block;
+    text-decoration: none;
+    margin: 0 auto;
+    border: solid 1px #f79472;
+    background: #f79472;
+    text-align: center;
+    padding: 10px 30px;
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    transition: all 0.1s;
+    -webkit-box-shadow: 0px 9px 0px #e6805c;
+    -moz-box-shadow: 0px 9px 0px #e6805c;
+    box-shadow: 0px 9px 0px #e6805c;
+}
+
+button[name=restart],
+button[name=scoreboard] {
     font-family: 'Open Sans', sans-serif;
     position: absolute;
     top: 75%;
@@ -148,14 +174,27 @@ button[name=restart] {
     box-shadow: 0px 9px 0px #e6805c;
 }
 
-button[name=restart]:active {
+button[name=signin]:active,
+button[name=restart]:active,
+button[name=leaderboard]: active,
+button[name=scoreboard]: active {
     -webkit-box-shadow: 0px 2px 0px #e6805c;
     -moz-box-shadow: 0px 2px 0px #e6805c;
     box-shadow: 0px 2px 0px #e6805c;
 }
 
-button[name=restart]:focus {
+button[name=signin]:focus,
+button[name=restart]:focus,
+button[name=leaderboard]:focus,
+button[name=scoreboard]:focus {
     outline: 0;
+}
+
+#my-signin {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 #character-board {
@@ -183,4 +222,16 @@ button[name=restart]:focus {
 
 .choices div {
     cursor: pointer;
+}
+
+#current-score h3 {
+    position: absolute;
+    font-size: 7em;
+    -webkit-text-shadow: 0px 3px 0px #ec4141;
+    -moz-text-shadow: 0px 3px 0px #ec4141;
+    text-shadow: 0px 3px 0px #ec4141;
+    color: #ef7c91;
+    top: 17%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }

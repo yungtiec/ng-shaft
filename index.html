@@ -5,6 +5,11 @@
     <title>ns-shafts</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="google-signin-clientid" content="148406620227-cslkm2tnvljg98gphs7a8ubbpi3k70mo.apps.googleusercontent.com" />
+    <meta name="google-signin-cookiepolicy" content="single_host_origin" />
+    <meta name="google-signin-approvalprompt" content="auto" />
+    <!-- <meta name="google-signin-callback" content="signinCallback" /> -->
+    <meta name="google-signin-scope" content="https://www.googleapis.com/auth/games" />
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="main.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
@@ -17,15 +22,24 @@
         <div id="dashboard" ng-hide="gameOver || !playing">
             <p id="level">B{{ level }} 分數: {{ score }}</p>
         </div>
-
-        <button name="restart" ng-show="gameOver" ng-click="restart()">TRY AGAIN</button>
-        <ul class="scoreboard" ng-show="gameOver">
-            <li>YOUR HIGHEST SCORES</li>
-            <li ng-repeat="score in $storage.bestScores track by $index">
-                <span>{{score}}</span>
-            </li>
-        </ul>
-
+        <div id="current-score" ng-show="gameOver && !scoreboard && !leaderboard">
+            <h3>{{score}}</h3>
+            <button name="leaderboard" ng-click="goToLeaderboard()">SEE LEADERBOARD</button>
+            <button name="scoreboard" ng-click="goToScoreboard()">SEE YOUR BEST SCORES</button>
+        </div>
+        <div id="scoreboard" ng-show="gameOver && scoreboard">
+            <button name="restart" ng-click="restart()">TRY AGAIN</button>
+            <ul class="scoreboard">
+                <li>YOUR HIGHEST SCORES</li>
+                <li ng-repeat="score in $storage.bestScores track by $index">
+                    <span>{{score}}</span>
+                </li>
+            </ul>
+        </div>
+        <div id="leaderboard" ng-show="gameOver && leaderboard">
+            <div id="my-signin"></div>
+            <button name="restart" ng-click="restart()">PLAY AGAIN</button>
+        </div>
         <div id="character-board" ng-show="!playerChosen">
             <p>PICK YOUR CHARACTER</p>
             <div class="choices">
@@ -34,7 +48,6 @@
                 <div ng-click="setPlayerToHL()">Harrison Lo</div>
             </div>
         </div>
-
         <div ng-hide="playing || !playerChosen" class="scoreboard">
             <p id="logo">
                 小朋友下樓梯 3D版
@@ -44,8 +57,40 @@
         </div>
     </div>
     <script src="src/three.js"></script>
-    <script type="text/javascript" src="src/ObjectLoader.js"></script>
     <script type="text/javascript" src="light.js"></script>
+    <script type="text/javascript" src="materials.js"></script>
+    <script>
+    (function() {
+        var po = document.createElement('script');
+        po.type = 'text/javascript';
+        po.async = true;
+        po.src = 'https://apis.google.com/js/client:plusone.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(po, s);
+    })();
+    </script>
+    <script>
+    function onSuccess(googleUser) {
+        console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
+    }
+
+    function onFailure(error) {
+        console.log(error);
+    }
+
+    function renderButton() {
+        gapi.signin2.render('my-signin', {
+            'scope': 'profile email',
+            'width': 380,
+            'height': 50,
+            'longtitle': true,
+            'theme': 'dark',
+            'onSuccess': onSuccess,
+            'onFailure': onFailure
+        });
+    }
+    </script>
+    <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
     <script>
     var app = angular.module('threeDShaft', ['ngStorage']);
     app.controller('threeDShaft', function($scope, $interval, $localStorage) {
@@ -128,7 +173,9 @@
         $scope.score = 0;
         $scope.lives = 10;
         $scope.gameOver = false;
-        $scope.setPlayerToCube = function () {
+        $scope.scoreboard = false;
+        $scope.leaderboard = false;
+        $scope.setPlayerToCube = function() {
             $scope.player = 'cube';
             $scope.playerChosen = true;
             board.visible = false;
@@ -136,7 +183,7 @@
             tcPlayer.visible = false;
             hlPlayer.visible = false;
         }
-        $scope.setPlayerToTC = function () {
+        $scope.setPlayerToTC = function() {
             $scope.player = 'TC';
             $scope.playerChosen = true;
             board.visible = false;
@@ -144,7 +191,7 @@
             tcPlayer.visible = false;
             hlPlayer.visible = false;
         }
-        $scope.setPlayerToHL = function () {
+        $scope.setPlayerToHL = function() {
             $scope.player = 'HL';
             $scope.playerChosen = true;
             board.visible = false;
@@ -173,6 +220,8 @@
             $scope.score = 0;
             scoreboard.visible = false;
             gameoverObject.visible = false;
+            $scope.scoreboard = false;
+            $scope.leaderboard = false;
             if (storeBestScore) storeBestScore = false;
             if (alreadyStoredBestScore) alreadyStoredBestScore = false;
         };
@@ -182,68 +231,12 @@
             createPlayer($scope.player)
             $scope.startCount();
         };
-
-        var Colors = {
-            red: 0xff3c46,
-            white: 0xd8d0d1,
-            green: 0xbdf566,
-            orange: 0xF5986E,
-            pink: 0xff5d93,
-            purple: 0xa48bff,
-            blue: 0x69ceec,
-            yellow: 0xf4c637,
-            yellowDark: 0xffc72a,
-            emerald: 0x019875,
-            tangerine: 0xf05442
-        };
-
-        var gameoverMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.red
-        });
-        var redMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.red,
-            shading: THREE.FlatShading
-        });
-        var whiteMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.white,
-            shading: THREE.FlatShading
-        });
-        var greenMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.green,
-            shading: THREE.FlatShading
-        });
-        var purpleMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.purple,
-            shading: THREE.FlatShading
-        });
-        var blueMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.blue,
-            shading: THREE.FlatShading
-        });
-        var orangeMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.orange,
-            shading: THREE.FlatShading
-        });
-        var yellowMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.yellow,
-            shading: THREE.FlatShading
-        });
-        var yellowDarkMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.yellowDark,
-            shading: THREE.FlatShading
-        });
-        var pinkMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.pink,
-            shading: THREE.FlatShading
-        });
-        var emeraldMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.emerald,
-            shading: THREE.FlatShading
-        });
-        var tangerineMaterial = new THREE.MeshPhongMaterial({
-            color: Colors.tangerine,
-            shading: THREE.FlatShading
-        });
+        $scope.goToScoreboard = function() {
+            $scope.scoreboard = true;
+        }
+        $scope.goToLeaderboard = function() {
+            $scope.leaderboard = true;
+        }
 
         init();
         animate();
@@ -370,7 +363,7 @@
                 shading: THREE.FlatShading
             })
             mesh = new THREE.Mesh(face, faceMaterial);
-            tcPlayer.add( mesh );
+            tcPlayer.add(mesh);
 
             var hatBase = new THREE.CubeGeometry(60, 8, 40);
             var hatMaterial = new THREE.MeshPhongMaterial({
@@ -379,7 +372,7 @@
             })
             mesh = new THREE.Mesh(hatBase, hatMaterial);
             mesh.position.set(10, 24, 0);
-            tcPlayer.add( mesh );
+            tcPlayer.add(mesh);
 
             var hat = new THREE.CubeGeometry(40, 20, 40);
             var hatMaterial = new THREE.MeshPhongMaterial({
@@ -388,7 +381,7 @@
             })
             mesh = new THREE.Mesh(hat, hatMaterial);
             mesh.position.set(0, 32, 0);
-            tcPlayer.add( mesh );
+            tcPlayer.add(mesh);
 
             var eye = new THREE.CubeGeometry(10, 2, 2);
             var eyeMaterial = new THREE.MeshPhongMaterial({
@@ -397,7 +390,7 @@
             })
             mesh = new THREE.Mesh(eye, eyeMaterial);
             mesh.position.set(-10, 8, 20);
-            tcPlayer.add( mesh );
+            tcPlayer.add(mesh);
 
             eye = new THREE.CubeGeometry(10, 2, 2);
             eyeMaterial = new THREE.MeshPhongMaterial({
@@ -406,7 +399,7 @@
             })
             mesh = new THREE.Mesh(eye, eyeMaterial);
             mesh.position.set(10, 8, 20);
-            tcPlayer.add( mesh );
+            tcPlayer.add(mesh);
             tcPlayer.position.set(0, 0, 100);
             scene.add(tcPlayer);
 
@@ -419,7 +412,7 @@
             })
             mesh = new THREE.Mesh(face, faceMaterial);
             mesh.position.set(0, 0, 0);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             var hairBase = new THREE.CubeGeometry(40, 15, 40);
             var hairMaterial = new THREE.MeshPhongMaterial({
@@ -428,7 +421,7 @@
             })
             mesh = new THREE.Mesh(hairBase, hairMaterial);
             mesh.position.set(0, 25, 0);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             var glasses = new THREE.CubeGeometry(10, 2, 2);
             var glassesMaterial = new THREE.MeshPhongMaterial({
@@ -437,7 +430,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-10, 5, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -446,7 +439,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(15, 1, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -455,7 +448,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(10, -3, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -464,7 +457,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(5, 1, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -473,7 +466,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-15, 1, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -482,7 +475,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-5, 1, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -491,7 +484,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(10, 5, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -500,7 +493,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-10, -3, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -509,7 +502,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(0, 3, 20);
-            hlPlayer.add( mesh );
+            hlPlayer.add(mesh);
             hlPlayer.position.set(75, 0, 100);
             scene.add(hlPlayer);
 
@@ -519,16 +512,18 @@
             scene.add(board);
         }
 
-        function createCube () {
+        function createCube() {
             var cubeGeometry = new THREE.CubeGeometry(40, 40, 40);
-            var fullstack = new THREE.TextureLoader().load( 'src/fullstack.png' );
-            var material = new THREE.MeshBasicMaterial( { map: fullstack } );
+            var fullstack = new THREE.TextureLoader().load('src/fullstack.png');
+            var material = new THREE.MeshBasicMaterial({
+                map: fullstack
+            });
             player = new THREE.Mesh(cubeGeometry, material);
             scene.add(player);
             return player;
         }
 
-        function createTammyChu () {
+        function createTammyChu() {
             var mesh;
             player = new THREE.Object3D();
             var face = new THREE.CubeGeometry(40, 40, 40);
@@ -537,7 +532,7 @@
                 shading: THREE.FlatShading
             })
             mesh = new THREE.Mesh(face, faceMaterial);
-            player.add( mesh );
+            player.add(mesh);
 
             var hatBase = new THREE.CubeGeometry(60, 8, 40);
             var hatMaterial = new THREE.MeshPhongMaterial({
@@ -546,7 +541,7 @@
             })
             mesh = new THREE.Mesh(hatBase, hatMaterial);
             mesh.position.set(10, 24, 0);
-            player.add( mesh );
+            player.add(mesh);
 
             var hat = new THREE.CubeGeometry(40, 20, 40);
             var hatMaterial = new THREE.MeshPhongMaterial({
@@ -555,7 +550,7 @@
             })
             mesh = new THREE.Mesh(hat, hatMaterial);
             mesh.position.set(0, 32, 0);
-            player.add( mesh );
+            player.add(mesh);
 
             var eye = new THREE.CubeGeometry(10, 2, 2);
             var eyeMaterial = new THREE.MeshPhongMaterial({
@@ -564,7 +559,7 @@
             })
             mesh = new THREE.Mesh(eye, eyeMaterial);
             mesh.position.set(10, 8, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             eye = new THREE.CubeGeometry(10, 2, 2);
             eyeMaterial = new THREE.MeshPhongMaterial({
@@ -573,14 +568,14 @@
             })
             mesh = new THREE.Mesh(eye, eyeMaterial);
             mesh.position.set(-10, 8, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             player.position.set(0, 0, 0);
             scene.add(player);
             return player;
         }
 
-        function createHarrison () {
+        function createHarrison() {
             var mesh;
             player = new THREE.Object3D();
             var face = new THREE.CubeGeometry(40, 35, 40);
@@ -590,7 +585,7 @@
             })
             mesh = new THREE.Mesh(face, faceMaterial);
             mesh.position.set(0, -5, 0);
-            player.add( mesh );
+            player.add(mesh);
 
             var hairBase = new THREE.CubeGeometry(40, 15, 40);
             var hairMaterial = new THREE.MeshPhongMaterial({
@@ -599,7 +594,7 @@
             })
             mesh = new THREE.Mesh(hairBase, hairMaterial);
             mesh.position.set(0, 20, 0);
-            player.add( mesh );
+            player.add(mesh);
 
             var glasses = new THREE.CubeGeometry(10, 2, 2);
             var glassesMaterial = new THREE.MeshPhongMaterial({
@@ -608,7 +603,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-10, 5, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -617,7 +612,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(15, 1, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -626,7 +621,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(10, -3, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -635,7 +630,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(5, 1, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -644,7 +639,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-15, 1, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(2, 10, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -653,7 +648,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-5, 1, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -662,7 +657,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(10, 5, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -671,7 +666,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-10, 3, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -680,7 +675,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(-10, -3, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             glasses = new THREE.CubeGeometry(10, 2, 2);
             glassesMaterial = new THREE.MeshPhongMaterial({
@@ -689,7 +684,7 @@
             })
             mesh = new THREE.Mesh(glasses, glassesMaterial);
             mesh.position.set(0, 3, 20);
-            player.add( mesh );
+            player.add(mesh);
 
             scene.add(player);
             return player;
@@ -979,8 +974,10 @@
 
             if ($scope.gameOver) {
                 scene.remove(player);
-                scoreboard.visible = true;
-                gameoverObject.visible = true;
+                if ($scope.scoreboard) {
+                    scoreboard.visible = true;
+                    gameoverObject.visible = true;
+                }
                 if (!alreadyStoredBestScore) {
                     screamAudio.play();
                     storeBestScore = true;
@@ -1045,7 +1042,7 @@
                     scene.remove(player)
                 }
                 if (playerClone.position.y > 350) {
-                    setTimeout(function () {
+                    setTimeout(function() {
                         decrementLives = true;
                         rightCrossAudio.play();
                     }, 300)
@@ -1080,7 +1077,7 @@
                                 }
                             }
                             if (collisionResults[0].object.itemType === 'byeShaft') {
-                                setTimeout(function () {
+                                setTimeout(function() {
                                     if (collisionResults[0]) changePosition(collisionResults[0].object, items);
                                 }, 300);
                                 if (collisionObject !== collisionResults[0].object) {
@@ -1096,24 +1093,24 @@
                 if (upKeyDown == true) player.position.y += playerSpeed;
                 if (downKeyDown == true) player.position.y -= playerSpeed;
                 if (leftKeyDown == true && !shaftXCollisionFromRight) {
-                    if (player.children.length) player.children.forEach(function (child) {
+                    if (player.children.length) player.children.forEach(function(child) {
                         child.position.x -= playerSpeed;
                     })
                     else player.position.x -= playerSpeed
                 };
                 if (rightKeyDown == true && !shaftXCollisionFromLeft) {
-                    if (player.children.length) player.children.forEach(function (child) {
+                    if (player.children.length) player.children.forEach(function(child) {
                         child.position.x += playerSpeed;
                     })
                     else player.position.x += playerSpeed;
                 }
                 if (shaftYCollision == true) {
-                    if (player.children.length) player.children.forEach(function (child) {
+                    if (player.children.length) player.children.forEach(function(child) {
                         child.position.y += playerSpeed;
                     })
                     else player.position.y += playerSpeed;
                 } else {
-                    if (player.children.length) player.children.forEach(function (child) {
+                    if (player.children.length) player.children.forEach(function(child) {
                         child.position.y -= playerSpeed * 2;
                     })
                     else player.position.y -= playerSpeed * 2;
