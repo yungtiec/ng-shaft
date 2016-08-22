@@ -24,6 +24,8 @@
         </div>
         <div id="current-score" ng-show="gameOver && !scoreboard && !leaderboard">
             <h3>{{score}}</h3>
+            <!-- if user on scope, go to leaderboard -->
+            <!-- else go to sign in -->
             <button name="leaderboard" ng-click="goToLeaderboard()">SEE LEADERBOARD</button>
             <button name="scoreboard" ng-click="goToScoreboard()">SEE YOUR BEST SCORES</button>
         </div>
@@ -36,9 +38,9 @@
                 </li>
             </ul>
         </div>
-        <div id="leaderboard" ng-show="gameOver && leaderboard">
+        <div id="signin-wrapper" ng-show="gameOver && leaderboard">
             <div id="my-signin"></div>
-            <button name="restart" ng-click="restart()">PLAY AGAIN</button>
+            <button name="restart2" ng-click="restart()">PLAY AGAIN</button>
         </div>
         <div id="character-board" ng-show="!playerChosen">
             <p>PICK YOUR CHARACTER</p>

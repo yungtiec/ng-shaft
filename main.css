@@ -33,6 +33,16 @@ span {
     overflow: hidden;
 }
 
+#logo {
+    position: relative;
+    top: 60px;
+    color: #ef7c91;
+    font-size: 1.2em;
+    -webkit-text-shadow: 0px 3px 0px #ec4141;
+    -moz-text-shadow: 0px 3px 0px #ec4141;
+    text-shadow: 0px 3px 0px #ec4141;
+}
+
 #dashboard {
     position: absolute;
     bottom: 1%;
@@ -66,16 +76,6 @@ span {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-}
-
-#logo {
-    position: relative;
-    top: 60px;
-    color: #ef7c91;
-    font-size: 1.2em;
-    -webkit-text-shadow: 0px 3px 0px #ec4141;
-    -moz-text-shadow: 0px 3px 0px #ec4141;
-    text-shadow: 0px 3px 0px #ec4141;
 }
 
 .scoreboard {
@@ -124,33 +124,7 @@ button[name=start]:focus {
     outline: 0;
 }
 
-button[name=signin],
-button[name=leaderboard] {
-    font-family: 'Open Sans', sans-serif;
-    position: absolute;
-    top: 65%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.2em;
-    width: 380px;
-    color: #FFF;
-    display: block;
-    text-decoration: none;
-    margin: 0 auto;
-    border: solid 1px #f79472;
-    background: #f79472;
-    text-align: center;
-    padding: 10px 30px;
-    -webkit-transition: all 0.1s;
-    -moz-transition: all 0.1s;
-    transition: all 0.1s;
-    -webkit-box-shadow: 0px 9px 0px #e6805c;
-    -moz-box-shadow: 0px 9px 0px #e6805c;
-    box-shadow: 0px 9px 0px #e6805c;
-}
-
-button[name=restart],
-button[name=scoreboard] {
+button[name=restart] {
     font-family: 'Open Sans', sans-serif;
     position: absolute;
     top: 75%;
@@ -174,28 +148,17 @@ button[name=scoreboard] {
     box-shadow: 0px 9px 0px #e6805c;
 }
 
-button[name=signin]:active,
-button[name=restart]:active,
-button[name=leaderboard]: active,
-button[name=scoreboard]: active {
+button[name=restart]:active {
     -webkit-box-shadow: 0px 2px 0px #e6805c;
     -moz-box-shadow: 0px 2px 0px #e6805c;
     box-shadow: 0px 2px 0px #e6805c;
 }
 
-button[name=signin]:focus,
-button[name=restart]:focus,
-button[name=leaderboard]:focus,
-button[name=scoreboard]:focus {
+button[name=restart]:focus {
     outline: 0;
 }
 
-#my-signin {
-    position: absolute;
-    top: 65%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+/* character board */
 
 #character-board {
     position: absolute;
@@ -224,14 +187,101 @@ button[name=scoreboard]:focus {
     cursor: pointer;
 }
 
-#current-score h3 {
+/* score of the round div */
+
+#current-score {
     position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#current-score h3 {
+    margin: 15px auto;
+    text-align: center;
     font-size: 7em;
     -webkit-text-shadow: 0px 3px 0px #ec4141;
     -moz-text-shadow: 0px 3px 0px #ec4141;
     text-shadow: 0px 3px 0px #ec4141;
     color: #ef7c91;
-    top: 17%;
+}
+
+#current-score button {
+    margin: 10px;
+}
+
+button[name=scoreboard],
+button[name=leaderboard] {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.2em;
+    width: 380px;
+    color: #FFF;
+    display: block;
+    text-decoration: none;
+    margin: 0 auto;
+    border: solid 1px #f79472;
+    background: #f79472;
+    text-align: center;
+    padding: 10px 30px;
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    transition: all 0.1s;
+    -webkit-box-shadow: 0px 9px 0px #e6805c;
+    -moz-box-shadow: 0px 9px 0px #e6805c;
+    box-shadow: 0px 9px 0px #e6805c;
+}
+
+button[name=leaderboard]: active,
+button[name=scoreboard]: active {
+    -webkit-box-shadow: 0px 2px 0px #e6805c;
+    -moz-box-shadow: 0px 2px 0px #e6805c;
+    box-shadow: 0px 2px 0px #e6805c;
+}
+
+button[name=leaderboard]:focus,
+button[name=scoreboard]:focus {
+    outline: 0;
+}
+
+/* sign in wrapper */
+
+#signin-wrapper {
+    position: absolute;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+#my-signin button {
+    margin: 20px;
+}
+
+button[name=restart2] {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.2em;
+    width: 380px;
+    color: #FFF;
+    display: block;
+    text-decoration: none;
+    margin: 0 auto;
+    border: solid 1px #f79472;
+    background: #f79472;
+    text-align: center;
+    padding: 10px 30px;
+    -webkit-transition: all 0.1s;
+    -moz-transition: all 0.1s;
+    transition: all 0.1s;
+    -webkit-box-shadow: 0px 9px 0px #e6805c;
+    -moz-box-shadow: 0px 9px 0px #e6805c;
+    box-shadow: 0px 9px 0px #e6805c;
+}
+
+button[name=restart2]:active {
+    -webkit-box-shadow: 0px 2px 0px #e6805c;
+    -moz-box-shadow: 0px 2px 0px #e6805c;
+    box-shadow: 0px 2px 0px #e6805c;
+}
+
+button[name=restart2]:focus {
+    outline: 0;
 }
