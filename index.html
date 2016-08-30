@@ -8,8 +8,6 @@
     <meta name="google-signin-clientid" content="148406620227-cslkm2tnvljg98gphs7a8ubbpi3k70mo.apps.googleusercontent.com" />
     <meta name="google-signin-cookiepolicy" content="single_host_origin" />
     <meta name="google-signin-approvalprompt" content="auto" />
-    <!-- <meta name="google-signin-callback" content="signinCallback" /> -->
-    <meta name="google-signin-scope" content="https://www.googleapis.com/auth/games" />
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:800' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="main.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.14.1/lodash.min.js"></script>
@@ -38,10 +36,11 @@
                 </li>
             </ul>
         </div>
-        <div id="signin-wrapper" ng-show="gameOver && leaderboard">
-            <div id="my-signin"></div>
+        <div id="signin-wrapper" ng-show="gameOver && leaderboard && !user">
+            <div id="my-signin" ng-click="login()"></div>
             <button name="restart2" ng-click="restart()">PLAY AGAIN</button>
         </div>
+        <leaderboard ng-show="gameOver && leaderboard && user"></leaderboard>
         <div id="character-board" ng-show="!playerChosen">
             <p>PICK YOUR CHARACTER</p>
             <div class="choices">
@@ -58,9 +57,11 @@
             </p>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
     <script src="src/three.js"></script>
-    <script type="text/javascript" src="light.js"></script>
-    <script type="text/javascript" src="materials.js"></script>
+    <script type="text/javascript" src="src/audio.js"></script>
+    <script type="text/javascript" src="src/light.js"></script>
+    <script type="text/javascript" src="src/materials.js"></script>
     <script>
     (function() {
         var po = document.createElement('script');
@@ -72,30 +73,187 @@
     })();
     </script>
     <script>
-    function onSuccess(googleUser) {
-        console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-    }
-
-    function onFailure(error) {
-        console.log(error);
-    }
-
     function renderButton() {
         gapi.signin2.render('my-signin', {
-            'scope': 'profile email',
             'width': 380,
             'height': 50,
             'longtitle': true,
-            'theme': 'dark',
-            'onSuccess': onSuccess,
-            'onFailure': onFailure
+            'theme': 'dark'
         });
     }
     </script>
     <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
     <script>
     var app = angular.module('threeDShaft', ['ngStorage']);
-    app.controller('threeDShaft', function($scope, $interval, $localStorage) {
+    app.factory('leadManager', function($rootScope) {
+        var leadManager = leadManager || {};
+        leadManager.preloaded = false;
+        leadManager.leaderboards = {};
+        var leaderboardId = 'CgkIw6Dl7agEEAIQAA';
+        var apiKey = 'wGQU03_4hVXTQkfHBmXWq_CA';
+
+        leadManager.preloadData = function() {
+            var request = gapi.client.games.leaderboards.list();
+            request.execute(function(response) {
+                console.log('Leaderboard data', response);
+                if (response.kind == 'games#leaderboardListResponse' &&
+                    response.hasOwnProperty('items')) {
+                    for (var i = 0; i < response.items.length; i++) {
+                        leadManager.leaderboards[response.items[i].id] = response.items[i];
+                    }
+                }
+                leadManager.preloaded = true;
+            });
+        };
+
+        leadManager.clearData = function() {
+            leadManager.leaderboards = {};
+            leadManager.preloaded = false;
+        };
+
+        leadManager.getLeaderboardObject = function(leadId) {
+            return leadManager.leaderboards[leadId];
+        };
+
+        leadManager.gotScore = function(receivedScore) {
+            var request = gapi.client.games.scores.submit({
+                leaderboardId: leaderboardId,
+                score: receivedScore,
+            });
+            request.execute(function(response) {
+                if (response.result) $rootScope.$emit('scoreSent');
+            });
+        };
+        return leadManager;
+    })
+
+    app.service('googleService', ['leadManager', '$http', '$rootScope', '$q', function(leadManager,$http, $rootScope, $q, $scope) {
+        var clientId = '148406620227-cslkm2tnvljg98gphs7a8ubbpi3k70mo.apps.googleusercontent.com',
+            apiKey = 'wGQU03_4hVXTQkfHBmXWq_CA',
+            scopes = 'https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/games';
+        deferred = $q.defer();
+
+        this.login = function() {
+            gapi.auth.authorize({
+                client_id: clientId,
+                scope: scopes,
+                immediate: false
+            }, this.handleAuthResult);
+
+            return deferred.promise;
+        }
+
+        this.handleClientLoad = function() {
+            gapi.client.setApiKey(apiKey);
+            gapi.auth.init(function() {});
+            window.setTimeout(checkAuth, 1);
+        };
+
+        this.checkAuth = function() {
+            gapi.auth.authorize({
+                client_id: clientId,
+                scope: scopes,
+                immediate: true
+            }, this.handleAuthResult);
+        };
+
+        this.handleAuthResult = function(authResult) {
+            if (authResult && !authResult.error) {
+                var data = {};
+                data = authResult;
+                gapi.client.load('oauth2', 'v2', function() {
+                    var request = gapi.client.oauth2.userinfo.get();
+                    request.execute(function(resp) {
+                        gapi.client.load('games', 'v1', function() {
+                            leadManager.preloadData();
+                            leadManager.gotScore($rootScope.score);
+                        });
+                    });
+                });
+                deferred.resolve(data);
+            } else {
+                deferred.reject('error');
+            }
+        };
+
+        this.handleAuthClick = function(event) {
+            gapi.auth.authorize({
+                client_id: clientId,
+                scope: scopes,
+                immediate: false
+            }, this.handleAuthResult);
+            return false;
+        };
+
+    }]);
+    app.directive('leaderboard', function($rootScope, $document, leadManager) {
+        var leaderboardId = 'CgkIw6Dl7agEEAIQAA';
+        var leaderboardTable = leaderboardTable || {};
+
+        leaderboardTable.showLeaderboard = function(elem) {
+            var $leaderboardTable = elem.find('tbody');
+            $leaderboardTable.html('');
+            var request = gapi.client.games.scores.list({
+                collection: 'SOCIAL',
+                leaderboardId: leaderboardId,
+                timeSpan: 'ALL_TIME'
+            });
+            request.execute(function(response) {
+                if (response.hasOwnProperty('items')) {
+                    var count = (response.items.length < 30) ? response.items.length : 30;
+                    for (var i = 0; i < count; i++) {
+                        var $leaderboardRow = leaderboardTable.buildTableRowFromData(i, response.items[i]);
+                        $leaderboardRow.appendTo($leaderboardTable);
+                    }
+                }
+                $('#leaderboard').fadeIn();
+            });
+
+        };
+
+        leaderboardTable.buildTableRowFromData = function(i, rowObj) {
+            var scorePlayer = rowObj.player;
+            var $tableRow = $('<tr></tr>');
+            var $iconCell = $('<td></td>')
+                .append($('<img />')
+                    .prop('src', scorePlayer.avatarImageUrl + '?sz=50')
+                );
+            var $rank = $('<td></td>').text(i + 1);
+            var $nameCell = $('<td></td>').text(scorePlayer.displayName);
+            var $scoreCell = $('<td></td>').text(rowObj.formattedScore);
+            $tableRow.append($iconCell).append($rank).append($nameCell).append($scoreCell);
+
+            return $tableRow;
+        };
+
+        return {
+            restrict: 'E',
+            template: '<div id="leaderboard-header">LEADERBOARD</div>' +
+                '<table id="leaderboard">' +
+                '<tbody id="leaderboard-table">' +
+                '</tbody>' +
+                '</table>' +
+                '<button name="restart2" ng-click="restart()">PLAY AGAIN</button>',
+            link: function(scope, elem, attrs) {
+                $rootScope.$on('scoreSent', function() {
+                    leaderboardTable.showLeaderboard(elem);
+                });
+            }
+        };
+    });
+
+    app.controller('threeDShaft', function($scope, $interval, $localStorage, $window, googleService, $rootScope, leadManager) {
+        $scope.user = null;
+        $rootScope.user = null;
+        $scope.login = function() {
+            googleService.login().then(function(data) {
+                $scope.user = data;
+                $rootScope.user = data;
+                return data;
+            }).catch(function(err) {
+                console.log(err);
+            });
+        };
 
         var camera, scene, renderer;
         var items = [];
@@ -149,18 +307,7 @@
             z: 0
         };
 
-        var jumpAudio = document.createElement('audio');
-        var rightCrossAudio = document.createElement('audio');
-        var screamAudio = document.createElement('audio');
-        var coinAudio = document.createElement('audio');
-        jumpAudio.src = 'jump.mp3';
-        rightCrossAudio.src = 'rightCross.mp3';
-        screamAudio.src = 'scream.mp3';
-        coinAudio.src = 'coin.mp3'
-        jumpAudio.load();
-        rightCrossAudio.load();
-        screamAudio.load();
-        coinAudio.load();
+        createAudio();
 
         $scope.$storage = $localStorage.$default({
             bestScores: []
@@ -184,7 +331,7 @@
             cubePlayer.visible = false;
             tcPlayer.visible = false;
             hlPlayer.visible = false;
-        }
+        };
         $scope.setPlayerToTC = function() {
             $scope.player = 'TC';
             $scope.playerChosen = true;
@@ -192,7 +339,7 @@
             cubePlayer.visible = false;
             tcPlayer.visible = false;
             hlPlayer.visible = false;
-        }
+        };
         $scope.setPlayerToHL = function() {
             $scope.player = 'HL';
             $scope.playerChosen = true;
@@ -200,7 +347,7 @@
             cubePlayer.visible = false;
             tcPlayer.visible = false;
             hlPlayer.visible = false;
-        }
+        };
         $scope.startCount = function() {
             $interval(function() {
                 if (!$scope.gameOver) {
@@ -228,6 +375,7 @@
             if (alreadyStoredBestScore) alreadyStoredBestScore = false;
         };
         $scope.start = function() {
+            $scope.sendScoreOnce = _.once(sendScore);
             $scope.playing = true;
             resetSpeed()
             createPlayer($scope.player)
@@ -235,10 +383,11 @@
         };
         $scope.goToScoreboard = function() {
             $scope.scoreboard = true;
-        }
+        };
         $scope.goToLeaderboard = function() {
+            if ($rootScope.user) leadManager.gotScore($rootScope.score);
             $scope.leaderboard = true;
-        }
+        };
 
         init();
         animate();
@@ -308,7 +457,7 @@
 
         function createGameover3Dtext(scene) {
             var loader = new THREE.FontLoader();
-            loader.load('Minecrafter_Regular.typeface.js', function(font) {
+            loader.load('src/Minecrafter_Regular.typeface.js', function(font) {
                 var gameoverGeo = new THREE.TextGeometry("GAME OVER", {
                     font: font,
                     size: 25
@@ -960,6 +1109,13 @@
             return [compareX, compareY, compareZ];
         }
 
+        function sendScore(score) {
+            $rootScope.score = score;
+            if ($rootScope.user) {
+                leadManager.gotScore($rootScope.score);
+            }
+        }
+
         function animate() {
 
             shaftXCollisionFromLeft = false;
@@ -976,6 +1132,7 @@
 
             if ($scope.gameOver) {
                 scene.remove(player);
+                $scope.sendScoreOnce($scope.score);
                 if ($scope.scoreboard) {
                     scoreboard.visible = true;
                     gameoverObject.visible = true;

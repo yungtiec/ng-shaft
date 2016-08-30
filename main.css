@@ -158,6 +158,7 @@ button[name=restart]:focus {
     outline: 0;
 }
 
+
 /* character board */
 
 #character-board {
@@ -186,6 +187,7 @@ button[name=restart]:focus {
 .choices div {
     cursor: pointer;
 }
+
 
 /* score of the round div */
 
@@ -243,6 +245,7 @@ button[name=scoreboard]:focus {
     outline: 0;
 }
 
+
 /* sign in wrapper */
 
 #signin-wrapper {
@@ -284,4 +287,44 @@ button[name=restart2]:active {
 
 button[name=restart2]:focus {
     outline: 0;
+}
+
+
+/* leaderboard */
+
+leaderboard {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    height: 90%;
+    width: 50%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+td {
+    padding-left: 20px;
+    padding-right: 20px;
+    -webkit-text-shadow: 0px 1.5px 0px #ec4141;
+    -moz-text-shadow: 0px 1.5px 0px #ec4141;
+    text-shadow: 0px 1.5px 0px #ec4141;
+    color: #ef7c91;
+}
+
+td > img {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+#leaderboard-header {
+    font-size: 3em;
+    -webkit-text-shadow: 0px 6px 0px #ec4141;
+    -moz-text-shadow: 0px 6px 0px #ec4141;
+    text-shadow: 0px 6px 0px #ec4141;
+    color: #ef7c91;
 }
